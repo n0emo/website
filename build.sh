@@ -1,4 +1,4 @@
 #!/bin/sh
 
 mkdir -p build
-clang -Wall -Wextra src/main.c -o build/server
+clang -Wall -Wextra src/*.c -g -o build/server
