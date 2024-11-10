@@ -5,7 +5,7 @@
 #include "http.h"
 
 bool handle_request(Request *request, Response *response);
-void render_index(StringBuilder *sb);
+void render_index(ArenaStringBuilder *sb);
 
 #endif // WEB_H_
 

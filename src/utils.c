@@ -1,10 +1,68 @@
 #include "utils.h"
 
+#include <assert.h>
 #include <stdio.h>
 
-void sb_append_cstr(StringBuilder *sb, const char *s) {
+#define REGION_DEFAULT_CAPACITY (8 * 1024)
+
+void *arena_alloc(Arena *arena, size_t bytes) {
+    size_t size = (bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
+
+    if (arena->begin == NULL) {
+        assert(arena->end == NULL);
+        size_t capacity = REGION_DEFAULT_CAPACITY;
+        if (capacity < size) capacity = size;
+        arena->begin = new_region(capacity);
+        arena->end = arena->begin;
+    }
+
+    while (arena->end->count + size > arena->end->capacity && arena->end->next != NULL) {
+        arena->end = arena->end->next;
+    }
+
+     if (arena->end->count + size > arena->end->capacity) {
+        assert(arena->end->next == NULL);
+        size_t capacity = REGION_DEFAULT_CAPACITY;
+        if (capacity < size) capacity = size;
+        arena->end->next = new_region(capacity);
+        arena->end = arena->end->next;
+    }
+
+    void *result = &arena->end->data[arena->end->count];
+    arena->end->count += size;
+    return result;
+}
+
+void arena_free(Arena *arena) {
+    Region *region = arena->begin;
+    while (region != NULL) {
+        Region *next = region->next;
+        free_region(region);
+        region = next;
+    }
+
+    arena->begin = NULL;
+    arena->end = NULL;
+}
+
+Region *new_region(size_t capacity) {
+    size_t size = sizeof(Region) + sizeof(uintptr_t) * capacity;
+    Region *region = malloc(size);
+
+    region->next = NULL;
+    region->count = 0;
+    region->capacity = capacity;
+
+    return region;
+}
+
+void free_region(Region *region) {
+    free(region);
+}
+
+void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
     while(*s != '\0') {
-        ARRAY_APPEND(sb, *s);
+        ARRAY_APPEND_ARENA(sb, *s, sb->arena);
         s++;
     }
 }

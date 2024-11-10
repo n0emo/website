@@ -12,7 +12,7 @@ bool handle_request(Request *request, Response *response) {
     return true;
 }
 
-void render_index(StringBuilder *sb) {
+void render_index(ArenaStringBuilder *sb) {
     sb_append_cstr(
         sb,
         "<!DOCTYPE html>\n"

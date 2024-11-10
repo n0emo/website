@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <stdlib.h>
@@ -18,18 +19,55 @@
 
 #define try(...) if (!(__VA_ARGS__)) return_defer(false)
 
+/********* Arena **********/
+
+typedef struct Region Region;
+
+struct Region {
+    Region *next;
+    size_t count;
+    size_t capacity;
+    uintptr_t data[];
+};
+
+typedef struct {
+    Region *begin;
+    Region *end;
+} Arena;
+
+void *arena_alloc(Arena *arena, size_t bytes);
+void arena_free(Arena *arena);
+Region *new_region(size_t capacity);
+void free_region(Region *region);
+
 /********* Dynamic array **********/
 
-#define INITIAL_CAP 4
+#define INITIAL_CAP 128
 
 #define ARRAY_APPEND(array, item) do { \
     if ((array)->items == NULL) { \
-        (array)->items = (typeof((array)->items)) UTILS_MALLOC(INITIAL_CAP * sizeof((array)->items[0])); \
+        (array)->items = (typeof((array)->items)) malloc(INITIAL_CAP * sizeof((array)->items[0])); \
         (array)->count = 0; \
         (array)->capacity = INITIAL_CAP; \
     } else if ((array)->count >= (array)->capacity) { \
         size_t new_capacity = (array)->capacity * 2; \
-        (array)->items = (typeof((array)->items)) UTILS_REALLOC((array)->items, new_capacity * sizeof((array)->items[0])); \
+        (array)->items = (typeof((array)->items)) realloc((array)->items, new_capacity * sizeof((array)->items[0])); \
+        (array)->capacity = new_capacity; \
+    } \
+    (array)->items[(array)->count] = (item); \
+    (array)->count++; \
+} while(0) \
+
+#define ARRAY_APPEND_ARENA(array, item, arena) do { \
+    if ((array)->items == NULL) { \
+        (array)->items = (typeof((array)->items)) arena_alloc(arena, INITIAL_CAP * sizeof((array)->items[0])); \
+        (array)->count = 0; \
+        (array)->capacity = INITIAL_CAP; \
+    } else if ((array)->count >= (array)->capacity) { \
+        size_t new_capacity = (array)->capacity * 2; \
+        typeof((array)->items[0]) *items = arena_alloc(arena, new_capacity * sizeof((array)->items[0])); \
+        memcpy(items, (array)->items, (array)->capacity); \
+        (array)->items = items; \
         (array)->capacity = new_capacity; \
     } \
     (array)->items[(array)->count] = (item); \
@@ -39,12 +77,13 @@
 /********* String builder **********/
 
 typedef struct {
+    Arena *arena;
     char *items;
     size_t count;
     size_t capacity;
-} StringBuilder;
+} ArenaStringBuilder;
 
-void sb_append_cstr(StringBuilder *sb, const char *s);
+void sb_append_cstr(ArenaStringBuilder *sb, const char *s);
 
 /********* String view **********/
 

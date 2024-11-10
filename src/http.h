@@ -21,12 +21,14 @@ typedef struct {
 } Header;
 
 typedef struct {
+    Arena *arena;
     Header *items;
     size_t count;
     size_t capacity;
 } HeaderMap;
 
 typedef struct {
+    Arena arena;
     HttpMethod method;
     StringView resource_path;
     StringView version;
@@ -37,7 +39,7 @@ typedef struct {
 typedef struct {
     HttpStatus status;
     HeaderMap headers;
-    StringBuilder body;
+    ArenaStringBuilder body;
 } Response;
 
 typedef bool request_handler_t(Request *request, Response *response);
@@ -49,7 +51,7 @@ typedef struct {
 
 bool start_server(int port, request_handler_t *handler);
 bool accept_connection(int sd, request_handler_t *handler);
-int handle_connection(ThreadData *data);
+bool handle_connection(ThreadData *data);
 bool parse_request(int fd, Request *request);
 void headers_insert(HeaderMap *map, Header header);
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);

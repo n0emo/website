@@ -6,12 +6,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <threads.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <pthread.h>
+
+#include "utils.h"
 
 bool start_server(int port, request_handler_t *handler) {
     bool result = true;
@@ -30,6 +32,9 @@ bool start_server(int port, request_handler_t *handler) {
         .sin_port = htons(port),
         .sin_zero = { 0 },
     };
+
+    int option = 1;
+    setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     int ret = bind(sd, (struct sockaddr *) &addr, sizeof(addr));
     if (ret == -1) {
@@ -67,11 +72,11 @@ bool accept_connection(int sd, request_handler_t *handler) {
         return_defer(false);
     }
 
-    thrd_t thrd;
+    pthread_t thrd;
     data = calloc(1, sizeof(ThreadData));
     data->connfd = connfd;
     data->handler = handler;
-    if (thrd_create(&thrd, (int (*)(void *)) handle_connection, (void *) data) != thrd_success) {
+    if (pthread_create(&thrd, NULL, (void *(*)(void *)) handle_connection, (void *) data) != 0) {
         perror("error creating thread");
         return_defer(false);
     }
@@ -84,10 +89,15 @@ defer:
     return result;
 }
 
-int handle_connection(ThreadData *data) {
+bool handle_connection(ThreadData *data) {
+    pthread_detach(pthread_self());
+
     bool result = true;
     Request request = {0};
     Response response = {0};
+    request.headers.arena = &request.arena;
+    response.body.arena = &request.arena;
+    response.headers.arena = &request.arena;
 
     try(parse_request(data->connfd, &request));
     headers_insert_cstrs(&response.headers, "Connection", "close");
@@ -97,7 +107,8 @@ int handle_connection(ThreadData *data) {
 defer:
     close(data->connfd);
     free(data);
-    return result ? 0 : 1;
+    arena_free(&request.arena);
+    return result;
 }
 
 Response response_new() {
@@ -117,7 +128,7 @@ const char *status_desc(HttpStatus status) {
 }
 
 void headers_insert(HeaderMap *map, Header header) {
-    ARRAY_APPEND(map, header);
+    ARRAY_APPEND_ARENA(map, header, map->arena);
 }
 
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value) {
@@ -177,8 +188,8 @@ void request_trim_cr(StringView *sv) {
     if (sv->items[sv->count - 1] == '\r') sv->count--;
 }
 
-StringView request_copy_sv(StringView sv) {
-    char *items = malloc(sv.count);
+StringView request_copy_sv(Arena *arena, StringView sv) {
+    char *items = arena_alloc(arena, sv.count);
     assert(items != NULL);
     memcpy(items, sv.items, sv.count);
     return (StringView) { items, sv.count };
@@ -188,7 +199,6 @@ bool parse_request(int fd, Request *request) {
     // TODO maybe it's not a good idea to allocate 8Kb at the stack for each request
     char buf[BUF_CAP] = {0};
     StringView sv = {0};
-    memset(request, 0, sizeof(*request));
 
     if (!request_peek(fd, &sv, buf)) return false;
 
@@ -206,8 +216,8 @@ bool parse_request(int fd, Request *request) {
         return false;
     }
 
-    request->resource_path = request_copy_sv(sv_chop_by(&status_line, ' '));
-    request->version = request_copy_sv(sv_chop_by(&status_line, '\n'));
+    request->resource_path = request_copy_sv(&request->arena, sv_chop_by(&status_line, ' '));
+    request->version = request_copy_sv(&request->arena, sv_chop_by(&status_line, '\n'));
 
     if (!request_advance(fd, &sv, buf, count)) return false;
 
@@ -222,8 +232,8 @@ bool parse_request(int fd, Request *request) {
             break;
         }
 
-        StringView key = request_copy_sv(sv_chop_by(&header_line, ':'));
-        StringView value = request_copy_sv(sv_slice_from(header_line, 1));
+        StringView key = request_copy_sv(&request->arena, sv_chop_by(&header_line, ':'));
+        StringView value = request_copy_sv(&request->arena, sv_slice_from(header_line, 1));
         headers_insert(&request->headers, (Header) { key, value });
 
         if (!request_advance(fd, &sv, buf, count)) return false;
