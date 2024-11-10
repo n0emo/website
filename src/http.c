@@ -76,6 +76,7 @@ bool accept_connection(int sd, request_handler_t *handler) {
     data = calloc(1, sizeof(ThreadData));
     data->connfd = connfd;
     data->handler = handler;
+    // TODO: maybe we can preallocate threads and reuse themto handle requests
     if (pthread_create(&thrd, NULL, (void *(*)(void *)) handle_connection, (void *) data) != 0) {
         perror("error creating thread");
         return_defer(false);
@@ -105,17 +106,13 @@ bool handle_connection(ThreadData *data) {
     try(write_response(data->connfd, response));
 
 defer:
+    arena_free(&request.arena);
     close(data->connfd);
     free(data);
-    arena_free(&request.arena);
     return result;
 }
 
-Response response_new() {
-    Response response = {0};
-    return response;
-}
-
+// TODO: more statuses
 const char *status_desc(HttpStatus status) {
     switch (status) {
         case HTTP_OK:
@@ -127,6 +124,7 @@ const char *status_desc(HttpStatus status) {
     }
 }
 
+// TODO: hash map or binary tree
 void headers_insert(HeaderMap *map, Header header) {
     ARRAY_APPEND_ARENA(map, header, map->arena);
 }
@@ -169,6 +167,8 @@ bool write_response(int fd, Response response) {
     return true;
 }
 
+// TODO: streaming response
+
 #define BUF_CAP 8192
 
 bool request_peek(int sd, StringView *sv, char buf[BUF_CAP]) {
@@ -184,10 +184,12 @@ bool request_advance(int sd, StringView *sv, char buf[BUF_CAP], size_t count) {
     return request_peek(sd, sv, buf);
 }
 
+// TODO: general trim in sv
 void request_trim_cr(StringView *sv) {
     if (sv->items[sv->count - 1] == '\r') sv->count--;
 }
 
+// TODO: arena memdup
 StringView request_copy_sv(Arena *arena, StringView sv) {
     char *items = arena_alloc(arena, sv.count);
     assert(items != NULL);
@@ -228,6 +230,7 @@ bool parse_request(int fd, Request *request) {
         request_trim_cr(&header_line);
 
         if (header_line.count == 0) {
+            // TODO: if the last line is just \n, not \r\n, first byte of the body will be lost
             recv(fd, buf, 2, 0);
             break;
         }

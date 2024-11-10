@@ -1,5 +1,6 @@
 #include "web.h"
 
+// TODO: serve file
 bool handle_request(Request *request, Response *response) {
     if (sv_eq_cstr(request->resource_path, "/")) {
         response->status = HTTP_OK;
@@ -12,6 +13,7 @@ bool handle_request(Request *request, Response *response) {
     return true;
 }
 
+// TODO: immediate mode HTML framework
 void render_index(ArenaStringBuilder *sb) {
     sb_append_cstr(
         sb,

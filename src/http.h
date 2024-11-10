@@ -55,7 +55,6 @@ bool handle_connection(ThreadData *data);
 bool parse_request(int fd, Request *request);
 void headers_insert(HeaderMap *map, Header header);
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);
-Response response_new();
 const char *status_desc(HttpStatus status);
 bool write_response(int fd, Response response);
 
