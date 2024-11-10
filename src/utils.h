@@ -39,6 +39,7 @@ void *arena_alloc(Arena *arena, size_t bytes);
 void arena_free(Arena *arena);
 Region *new_region(size_t capacity);
 void free_region(Region *region);
+char *arena_sprintf(Arena *a, const char *format, ...);
 
 /********* Dynamic array **********/
 

@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #define REGION_DEFAULT_CAPACITY (8 * 1024)
@@ -58,6 +59,21 @@ Region *new_region(size_t capacity) {
 
 void free_region(Region *region) {
     free(region);
+}
+
+char *arena_sprintf(Arena *a, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int size = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+
+    assert(size >= 0);
+    char *result = (char*)arena_alloc(a, size + 1);
+    va_start(args, format);
+    vsnprintf(result, size + 1, format, args);
+    va_end(args);
+
+    return result;
 }
 
 void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
