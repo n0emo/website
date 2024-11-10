@@ -67,6 +67,19 @@ void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
     }
 }
 
+void sb_append_sv(ArenaStringBuilder *sb, StringView sv) {
+    for (size_t i = 0; i < sv.count; i++) {
+        ARRAY_APPEND_ARENA(sb, sv.items[i], sb->arena);
+    }
+}
+
+void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other) {
+    for (size_t i = 0; i < other.count; i++) {
+        ARRAY_APPEND_ARENA(sb, other.items[i], sb->arena);
+    }
+
+}
+
 StringView cstr_to_sv(const char *cstr) {
     return (StringView) {
         .items = cstr,

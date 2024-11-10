@@ -76,6 +76,8 @@ void free_region(Region *region);
 
 /********* String builder **********/
 
+typedef struct StringView StringView;
+
 typedef struct {
     Arena *arena;
     char *items;
@@ -84,13 +86,15 @@ typedef struct {
 } ArenaStringBuilder;
 
 void sb_append_cstr(ArenaStringBuilder *sb, const char *s);
+void sb_append_sv(ArenaStringBuilder *sb, StringView sv);
+void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other);
 
 /********* String view **********/
 
-typedef struct {
+struct StringView {
     const char *items;
     size_t count;
-} StringView;
+};
 
 bool sv_eq_cstr(StringView sv, const char *cstr);
 StringView cstr_to_sv(const char *cstr);
