@@ -1,15 +1,16 @@
 #include "html.h"
 
+#include <assert.h>
+
 void html_begin(Html *html) {
     html->sb.arena = &html->arena;
     sb_append_cstr(&html->sb, "<!DOCTYPE html>\n");
-    sb_append_cstr(&html->sb, "<html>\n");
-    html->indentation = 1;
+    html_tag_begin(html, "html");
 }
 
 void html_end(Html *html) {
-    sb_append_cstr(&html->sb, "</html>\n");
-    html->indentation = 0;
+    html_tag_end(html, "html");
+    assert(html->indentation == 0);
 }
 
 void html_push_attribute(Html *html, Attribute attribute) {
@@ -48,6 +49,7 @@ void html_tag_begin(Html *html, const char *tag) {
 }
 
 void html_tag_end(Html *html, const char *tag) {
+    assert(html->indentation > 0);
     html->indentation--;
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, "</");

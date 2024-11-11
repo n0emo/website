@@ -3,6 +3,8 @@
 #include "html.h"
 #include "utils.h"
 
+// TODO: parse query
+// TODO: handle POST with body
 bool handle_request(Request *request, Response *response) {
     if (sv_eq_cstr(request->path, "/")) {
         response->status = HTTP_OK;
@@ -21,6 +23,8 @@ bool handle_request(Request *request, Response *response) {
     return true;
 }
 
+// TODO: Make webpages design
+// TODO: add some CSS
 void render_index(ArenaStringBuilder *sb) {
     Html html = {0};
     page_base_begin(&html, "_n0emo website");
@@ -33,6 +37,7 @@ void render_index(ArenaStringBuilder *sb) {
     html_render_to_sb_and_free(&html, sb);
 }
 
+// TODO: render markdown to HTML
 void render_blogs(ArenaStringBuilder *sb) {
     Html html = {0};
     page_base_begin(&html, "Blogs");
