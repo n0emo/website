@@ -97,6 +97,7 @@ bool handle_connection(ThreadData *data) {
     Request request = {0};
     Response response = {0};
     request.headers.arena = &request.arena;
+    request.body.arena = &request.arena;
     response.body.arena = &request.arena;
     response.headers.arena = &request.arena;
 
@@ -196,15 +197,51 @@ StringView request_copy_sv(Arena *arena, StringView sv) {
     return (StringView) { items, sv.count };
 }
 
-bool parse_request(int fd, Request *request) {
+// TODO: time limit
+bool read_request_header_lines(int sd, ArenaStringBuilder *header, ArenaStringBuilder *body) {
     // TODO maybe it's not a good idea to allocate 8Kb at the stack for each request
     char buf[BUF_CAP] = {0};
-    StringView sv = {0};
 
-    if (!request_peek(fd, &sv, buf)) return false;
+    size_t count = 0;
+
+    while (true) {
+        ssize_t bytes = recv(sd, buf, BUF_CAP, 0);
+        if (bytes < 0) {
+            return false;
+        }
+
+        sb_append_buf(header, buf, bytes);
+        sb_append_char(header, '\0');
+        header->count--;
+
+        const char *body_ptr = strstr(header->items + count, "\r\n\r\n");
+        count = header->count;
+        size_t newlines = 4;
+
+        if (body_ptr == NULL) {
+            body_ptr = strstr(header->items, "\n\n");
+            newlines = 2;
+        }
+
+        if (body_ptr != NULL) {
+            size_t header_size = (size_t) (body_ptr - header->items);
+            sb_append_buf(body, body_ptr + newlines, header->count - header_size - newlines);
+            header->count = header_size;
+            return true;
+        }
+    }
+}
+
+bool parse_request(int fd, Request *request) {
+    ArenaStringBuilder header = { .arena = &request->arena, 0 };
+
+    if (!read_request_header_lines(fd, &header, &request->body)) return false;
+    StringView sv = {
+        .items = header.items,
+        .count = header.count,
+    };
 
     StringView status_line = sv_chop_by(&sv, '\n');
-    size_t count = status_line.count + 1;
     request_trim_cr(&status_line);
 
     StringView method = sv_chop_by(&status_line, ' ');
@@ -220,25 +257,18 @@ bool parse_request(int fd, Request *request) {
     request->resource_path = request_copy_sv(&request->arena, sv_chop_by(&status_line, ' '));
     request->version = request_copy_sv(&request->arena, sv_chop_by(&status_line, '\n'));
 
-    if (!request_advance(fd, &sv, buf, count)) return false;
-
     StringView header_line;
     while (true) {
         header_line = sv_chop_by(&sv, '\n');
-        size_t count = header_line.count + 1;
         request_trim_cr(&header_line);
 
         if (header_line.count == 0) {
-            // TODO: if the last line is just \n, not \r\n, first byte of the body will be lost
-            recv(fd, buf, 2, 0);
             break;
         }
 
         StringView key = request_copy_sv(&request->arena, sv_chop_by(&header_line, ':'));
         StringView value = request_copy_sv(&request->arena, sv_slice_from(header_line, 1));
         headers_insert(&request->headers, (Header) { key, value });
-
-        if (!request_advance(fd, &sv, buf, count)) return false;
     }
 
     StringView resource_path = request->resource_path;

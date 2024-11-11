@@ -87,6 +87,7 @@ typedef struct {
 } ArenaStringBuilder;
 
 void sb_append_char(ArenaStringBuilder *sb, char c);
+void sb_append_buf(ArenaStringBuilder *sb, const char *buf, size_t size);
 void sb_append_cstr(ArenaStringBuilder *sb, const char *s);
 void sb_append_sv(ArenaStringBuilder *sb, StringView sv);
 void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other);

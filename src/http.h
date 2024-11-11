@@ -36,7 +36,8 @@ typedef struct {
     StringView path;
     StringView query_string;
     HeaderMap headers;
-    int body_fd;
+    ArenaStringBuilder body;
+    int sd;
 } Request;
 
 typedef struct {
@@ -55,6 +56,7 @@ typedef struct {
 bool start_server(int port, request_handler_t *handler);
 bool accept_connection(int sd, request_handler_t *handler);
 bool handle_connection(ThreadData *data);
+bool read_request_header_lines(int sd, ArenaStringBuilder *header, ArenaStringBuilder *body);
 bool parse_request(int fd, Request *request);
 void headers_insert(HeaderMap *map, Header header);
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);

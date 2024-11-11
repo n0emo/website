@@ -83,6 +83,12 @@ void sb_append_char(ArenaStringBuilder *sb, char c)  {
     ARRAY_APPEND_ARENA(sb, c, sb->arena);
 }
 
+void sb_append_buf(ArenaStringBuilder *sb, const char *buf, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        sb_append_char(sb, buf[i]);
+    }
+}
+
 void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
     while(*s != '\0') {
         sb_append_char(sb, *s);
@@ -91,16 +97,11 @@ void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
 }
 
 void sb_append_sv(ArenaStringBuilder *sb, StringView sv) {
-    for (size_t i = 0; i < sv.count; i++) {
-        sb_append_char(sb, sv.items[i]);
-    }
+    sb_append_buf(sb, sv.items, sv.count);
 }
 
 void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other) {
-    for (size_t i = 0; i < other.count; i++) {
-        sb_append_char(sb, other.items[i]);
-    }
-
+    sb_append_buf(sb, other.items, other.count);
 }
 
 StringView cstr_to_sv(const char *cstr) {
