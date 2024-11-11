@@ -242,10 +242,38 @@ bool parse_request(int fd, Request *request) {
         if (!request_advance(fd, &sv, buf, count)) return false;
     }
 
-    // TODO: urldecode
     StringView resource_path = request->resource_path;
-    request->path = sv_chop_by(&resource_path, '?');
+    ArenaStringBuilder sb = { .arena = &request->arena, 0 };
+    StringView path = sv_chop_by(&resource_path, '?');
+    if (!http_urldecode(path, &sb)) return false;
+    request->path = sb_to_sv(sb);
+
     request->query_string = resource_path;
+
+    return true;
+}
+
+bool http_urldecode(StringView sv, ArenaStringBuilder *out) {
+    static const char *allowed = "!#$&'()*+,/:;=?@[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+
+    while (sv.count > 0) {
+        char c = sv.items[0];
+        if (strchr(allowed, c)) {
+            sb_append_char(out, c);
+            sv = sv_slice_from(sv, 1);
+        } else if (c == '%') {
+            if (sv.count < 3) return false;
+            char digits[3] = {0};
+            digits[0] = sv.items[1];
+            digits[1] = sv.items[2];
+            char result = (char) strtol(digits, NULL, 16);
+            if (result == 0) return false;
+            sb_append_char(out, result);
+            sv = sv_slice_from(sv, 3);
+        } else {
+            return false;
+        }
+    }
 
     return true;
 }

@@ -76,22 +76,26 @@ char *arena_sprintf(Arena *a, const char *format, ...) {
     return result;
 }
 
+void sb_append_char(ArenaStringBuilder *sb, char c)  {
+    ARRAY_APPEND_ARENA(sb, c, sb->arena);
+}
+
 void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
     while(*s != '\0') {
-        ARRAY_APPEND_ARENA(sb, *s, sb->arena);
+        sb_append_char(sb, *s);
         s++;
     }
 }
 
 void sb_append_sv(ArenaStringBuilder *sb, StringView sv) {
     for (size_t i = 0; i < sv.count; i++) {
-        ARRAY_APPEND_ARENA(sb, sv.items[i], sb->arena);
+        sb_append_char(sb, sv.items[i]);
     }
 }
 
 void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other) {
     for (size_t i = 0; i < other.count; i++) {
-        ARRAY_APPEND_ARENA(sb, other.items[i], sb->arena);
+        sb_append_char(sb, other.items[i]);
     }
 
 }
@@ -100,6 +104,13 @@ StringView cstr_to_sv(const char *cstr) {
     return (StringView) {
         .items = cstr,
         .count = strlen(cstr),
+    };
+}
+
+StringView sb_to_sv(ArenaStringBuilder sb) {
+    return (StringView) {
+        .items = sb.items,
+        .count = sb.count,
     };
 }
 

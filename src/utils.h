@@ -86,6 +86,7 @@ typedef struct {
     size_t capacity;
 } ArenaStringBuilder;
 
+void sb_append_char(ArenaStringBuilder *sb, char c);
 void sb_append_cstr(ArenaStringBuilder *sb, const char *s);
 void sb_append_sv(ArenaStringBuilder *sb, StringView sv);
 void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other);
@@ -99,6 +100,7 @@ struct StringView {
 
 bool sv_eq_cstr(StringView sv, const char *cstr);
 StringView cstr_to_sv(const char *cstr);
+StringView sb_to_sv(ArenaStringBuilder sb);
 bool sv_starts_with(StringView sv, StringView prefix);
 bool sv_starts_with_cstr(StringView sv, const char *prefix);
 StringView sv_slice_from(StringView sv, size_t index);

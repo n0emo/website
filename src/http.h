@@ -59,5 +59,6 @@ void headers_insert(HeaderMap *map, Header header);
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);
 const char *status_desc(HttpStatus status);
 bool write_response(int fd, Response response);
+bool http_urldecode(StringView sv, ArenaStringBuilder *out);
 
 #endif // HTTP_H_
