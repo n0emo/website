@@ -115,12 +115,11 @@ defer:
 // TODO: more statuses
 const char *status_desc(HttpStatus status) {
     switch (status) {
-        case HTTP_OK:
-            return "OK";
-        case HTTP_NOT_FOUND:
-            return "NOT FOUND";
-        default:
-            return "UNKNOWN";
+        case HTTP_OK:                    return "OK";
+        case HTTP_NOT_FOUND:             return "NOT FOUND";
+        case HTTP_INTERNAL_SERVER_ERROR: return "INTERNAL SERVER ERROR";
+
+        default: return "UNKNOWN";
     }
 }
 
