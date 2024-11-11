@@ -242,6 +242,11 @@ bool parse_request(int fd, Request *request) {
         if (!request_advance(fd, &sv, buf, count)) return false;
     }
 
+    // TODO: urldecode
+    StringView resource_path = request->resource_path;
+    request->path = sv_chop_by(&resource_path, '?');
+    request->query_string = resource_path;
+
     return true;
 }
 

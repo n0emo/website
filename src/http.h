@@ -32,6 +32,8 @@ typedef struct {
     HttpMethod method;
     StringView resource_path;
     StringView version;
+    StringView path;
+    StringView query_string;
     HeaderMap headers;
     int body_fd;
 } Request;
