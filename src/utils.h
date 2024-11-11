@@ -108,9 +108,5 @@ StringView sv_slice_from(StringView sv, size_t index);
 StringView sv_trim_right_to_cstr(StringView sv, char *chars);
 StringView sv_chop_by(StringView *sv, char c);
 
-/********* Filesystem **********/
-
-bool file_exists_in_dir(StringView file, StringView dir);
-
 #endif // UTILS_H_
 

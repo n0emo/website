@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <sys/stat.h>
-
 #define REGION_DEFAULT_CAPACITY (8 * 1024)
 
 void *arena_alloc(Arena *arena, size_t bytes) {
@@ -168,32 +166,4 @@ StringView sv_chop_by(StringView *sv, char c) {
     }
 
     return result;
-}
-
-bool file_exists_in_dir(StringView file, StringView dir) {
-    if (file.items[0] == '/') file = sv_slice_from(file, 1);
-
-    size_t size = snprintf(
-        NULL, 0,
-        "%.*s/%.*s",
-        (int) dir.count, dir.items,
-        (int) file.count, file.items
-    );
-
-    char *path = alloca(size + 1);
-    snprintf(
-        path, size + 1,
-        "%.*s/%.*s",
-        (int) dir.count, dir.items,
-        (int) file.count, file.items
-    );
-
-    if (strncmp(path, "../", 3) == 0 ||
-        strncmp(path + size - 3, "/..", 3) == 0 ||
-        strstr(path, "/../") != NULL) {
-        return false;
-    }
-
-    struct stat buf = {0};
-    return stat(path, &buf) == 0;
 }

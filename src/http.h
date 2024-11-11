@@ -44,6 +44,7 @@ typedef struct {
     HttpStatus status;
     HeaderMap headers;
     ArenaStringBuilder body;
+    int sd;
 } Response;
 
 typedef bool request_handler_t(Request *request, Response *response);
@@ -63,5 +64,7 @@ void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);
 const char *status_desc(HttpStatus status);
 bool write_response(int fd, Response response);
 bool http_urldecode(StringView sv, ArenaStringBuilder *out);
+
+bool try_serve_dir(Response *response, StringView file, StringView dir);
 
 #endif // HTTP_H_

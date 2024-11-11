@@ -3,7 +3,6 @@
 #include "html.h"
 #include "utils.h"
 
-// TODO: serve file
 bool handle_request(Request *request, Response *response) {
     if (sv_eq_cstr(request->path, "/")) {
         response->status = HTTP_OK;
@@ -13,8 +12,8 @@ bool handle_request(Request *request, Response *response) {
         response->status = HTTP_OK;
         headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
         render_blogs(&response->body);
-    } else if (file_exists_in_dir(request->path, cstr_to_sv("assets"))) {
-        response->status = HTTP_INTERNAL_SERVER_ERROR;
+    } else if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
+        response->status = HTTP_OK;
     } else {
         response->status = HTTP_NOT_FOUND;
     }

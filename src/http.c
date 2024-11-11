@@ -9,9 +9,12 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <pthread.h>
+#include <sys/file.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/sendfile.h>
+#include <unistd.h>
 
 #include "utils.h"
 
@@ -95,11 +98,14 @@ bool handle_connection(ThreadData *data) {
 
     bool result = true;
     Request request = {0};
-    Response response = {0};
     request.headers.arena = &request.arena;
     request.body.arena = &request.arena;
+    request.sd = data->connfd;
+
+    Response response = {0};
     response.body.arena = &request.arena;
     response.headers.arena = &request.arena;
+    response.sd = data->connfd;
 
     try(parse_request(data->connfd, &request));
     headers_insert_cstrs(&response.headers, "Connection", "close");
@@ -139,14 +145,14 @@ void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value) {
 }
 
 bool write_response(int fd, Response response) {
-    if (dprintf(fd, "HTTP/1.1 %d %s\n", response.status, status_desc(response.status)) < 0) {
+    if (dprintf(fd, "HTTP/1.1 %d %s\r\n", response.status, status_desc(response.status)) < 0) {
         return false;
     }
 
     for (size_t i = 0; i < response.headers.count; i++) {
         Header h = response.headers.items[i];
         int ret = dprintf(fd,
-            "%.*s: %.*s\n",
+            "%.*s: %.*s\r\n",
             (int) h.key.count, h.key.items,
             (int) h.value.count, h.value.items
         );
@@ -156,13 +162,11 @@ bool write_response(int fd, Response response) {
         }
     }
 
-    if (dprintf(fd, "Content-Length: %zu\n\n", response.body.count) < 0) {
+    if (dprintf(fd, "Content-Length: %zu\r\n\r\n", response.body.count) < 0) {
         return false;
     }
 
-    if (dprintf(fd, "%.*s", (int) response.body.count, response.body.items) < 0) {
-        return false;
-    }
+    write(fd, response.body.items, response.body.count);
 
     return true;
 }
@@ -303,6 +307,49 @@ bool http_urldecode(StringView sv, ArenaStringBuilder *out) {
             return false;
         }
     }
+
+    return true;
+}
+
+bool try_serve_dir(Response *response, StringView file, StringView dir) {
+    if (file.items[0] == '/') file = sv_slice_from(file, 1);
+
+    size_t size = snprintf(
+        NULL, 0,
+        "%.*s/%.*s",
+        (int) dir.count, dir.items,
+        (int) file.count, file.items
+    );
+
+    char *path = alloca(size + 1);
+    snprintf(
+        path, size + 1,
+        "%.*s/%.*s",
+        (int) dir.count, dir.items,
+        (int) file.count, file.items
+    );
+
+    if (strncmp(path, "../", 3) == 0 ||
+        strncmp(path + size - 3, "/..", 3) == 0 ||
+        strstr(path, "/../") != NULL) {
+        return false;
+    }
+
+    struct stat file_stat = {0};
+    if (stat(path, &file_stat) != 0) return false;
+
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) return false;
+
+    response->body.items = arena_alloc(response->body.arena, file_stat.st_size);
+
+    if (read(fd, response->body.items, file_stat.st_size) < 0) {
+        response->status = HTTP_INTERNAL_SERVER_ERROR;
+    } else {
+        response->body.count = file_stat.st_size;
+    }
+
+    close(fd);
 
     return true;
 }
