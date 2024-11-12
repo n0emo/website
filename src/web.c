@@ -21,7 +21,14 @@ bool handle_request(Request *request, Response *response) {
         response->status = HTTP_NOT_FOUND;
     }
 
-    log_debug("%s " SV_FMT ": %s", method_str(request->method), SV_ARG(request->path), status_desc(response->status));
+    log_debug(
+        "%s " SV_FMT ": %d %s",
+        method_str(request->method),
+        SV_ARG(request->path),
+        // TODO
+        response->status,
+        status_desc(response->status)
+    );
 
     return true;
 }
