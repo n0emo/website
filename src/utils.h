@@ -94,6 +94,9 @@ void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other);
 
 /********* String view **********/
 
+#define SV_FMT "%.*s"
+#define SV_ARG(sv) (int) (sv).count, (sv).items
+
 struct StringView {
     const char *items;
     size_t count;

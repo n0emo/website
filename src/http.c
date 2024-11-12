@@ -16,6 +16,7 @@
 #include <sys/sendfile.h>
 #include <unistd.h>
 
+#include "log.h"
 #include "utils.h"
 
 bool start_server(int port, request_handler_t *handler) {
@@ -54,7 +55,7 @@ bool start_server(int port, request_handler_t *handler) {
     char addr_name[INET6_ADDRSTRLEN];
     char addr_port[10];
     getnameinfo((struct sockaddr *) &addr, sizeof(addr), addr_name, sizeof(addr_name), addr_port, sizeof(addr_port), NI_NUMERICHOST | NI_NUMERICSERV);
-    printf("Serving at %s:%s\n", addr_name, addr_port);
+    log_info("Serving at %s:%s", addr_name, addr_port);
 
     while (true) {
         accept_connection(sd, handler);
@@ -130,6 +131,15 @@ const char *status_desc(HttpStatus status) {
     }
 }
 
+const char *method_str(HttpMethod method) {
+    switch (method) {
+        case HTTP_GET:  return "GET";
+        case HTTP_POST: return "POST";
+    }
+
+    return "UNKNOWN";
+}
+
 // TODO: hash map or binary tree
 void headers_insert(HeaderMap *map, Header header) {
     ARRAY_APPEND_ARENA(map, header, map->arena);
@@ -152,9 +162,8 @@ bool write_response(int fd, Response response) {
     for (size_t i = 0; i < response.headers.count; i++) {
         Header h = response.headers.items[i];
         int ret = dprintf(fd,
-            "%.*s: %.*s\r\n",
-            (int) h.key.count, h.key.items,
-            (int) h.value.count, h.value.items
+            SV_FMT ": " SV_FMT "\r\n",
+            SV_ARG(h.key), SV_ARG(h.value)
         );
 
         if (ret < 0) {
@@ -314,20 +323,10 @@ bool http_urldecode(StringView sv, ArenaStringBuilder *out) {
 bool try_serve_dir(Response *response, StringView file, StringView dir) {
     if (file.items[0] == '/') file = sv_slice_from(file, 1);
 
-    size_t size = snprintf(
-        NULL, 0,
-        "%.*s/%.*s",
-        (int) dir.count, dir.items,
-        (int) file.count, file.items
-    );
 
+    size_t size = snprintf(NULL, 0, SV_FMT "/" SV_FMT, SV_ARG(dir), SV_ARG(file));
     char *path = alloca(size + 1);
-    snprintf(
-        path, size + 1,
-        "%.*s/%.*s",
-        (int) dir.count, dir.items,
-        (int) file.count, file.items
-    );
+    snprintf(path, size + 1, SV_FMT "/" SV_FMT, SV_ARG(dir), SV_ARG(file));
 
     if (strncmp(path, "../", 3) == 0 ||
         strncmp(path + size - 3, "/..", 3) == 0 ||

@@ -1,8 +1,11 @@
+#include <errno.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "http.h"
 #include "web.h"
+#include "log.h"
 
 int main() {
     int port = 9000;
@@ -16,8 +19,7 @@ int main() {
     }
 
     if (!start_server(port, &handle_request)) {
-        // TODO: better logging system
-        fprintf(stderr, "Error starting server");
+        log_error("Error starting server: %s", strerror(errno));
         return 1;
     }
 

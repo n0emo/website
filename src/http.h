@@ -62,6 +62,7 @@ bool parse_request(int fd, Request *request);
 void headers_insert(HeaderMap *map, Header header);
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);
 const char *status_desc(HttpStatus status);
+const char *method_str(HttpMethod method);
 bool write_response(int fd, Response response);
 bool http_urldecode(StringView sv, ArenaStringBuilder *out);
 

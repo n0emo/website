@@ -1,6 +1,7 @@
 #include "web.h"
 
 #include "html.h"
+#include "log.h"
 #include "utils.h"
 
 // TODO: parse query
@@ -19,6 +20,8 @@ bool handle_request(Request *request, Response *response) {
     } else {
         response->status = HTTP_NOT_FOUND;
     }
+
+    log_debug("%s " SV_FMT ": %s", method_str(request->method), SV_ARG(request->path), status_desc(response->status));
 
     return true;
 }
