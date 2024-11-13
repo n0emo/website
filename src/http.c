@@ -111,6 +111,7 @@ bool handle_connection(ThreadData *data) {
     try(parse_request(data->connfd, &request));
     headers_insert_cstrs(&response.headers, "Connection", "close");
     headers_insert_cstrs(&response.headers, "X-Frame-Options", "DENY");
+    headers_insert_cstrs(&response.headers, "Content-Security-Policy", "default-src 'self';");
     try(data->handler(&request, &response));
     try(write_response(data->connfd, response));
 
