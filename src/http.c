@@ -175,7 +175,7 @@ bool write_response(int fd, Response response) {
         return false;
     }
 
-    write(fd, response.body.items, response.body.count);
+    if (write(fd, response.body.items, response.body.count) < 0) return false;
 
     return true;
 }
