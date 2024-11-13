@@ -1,0 +1,42 @@
+* {
+    margin: 0;
+}
+
+nav {
+    background-color: #34313b;
+}
+
+.navigation {
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    li {
+        float: left;
+        border-right:1px solid #ccc;
+    }
+
+    li:last-child {
+        border-right: none;
+    }
+
+    li.nav-right {
+        float: right;
+    }
+
+    li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+    }
+
+    li a:hover {
+        background-color: #1b191f;
+    }
+}
+
