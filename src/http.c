@@ -156,14 +156,14 @@ void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value) {
     headers_insert(map, header);
 }
 
-bool write_response(int fd, Response response) {
-    if (dprintf(fd, "HTTP/1.1 %d %s\r\n", response.status, status_desc(response.status)) < 0) {
+bool write_response(int sd, Response response) {
+    if (dprintf(sd, "HTTP/1.1 %d %s\r\n", response.status, status_desc(response.status)) < 0) {
         return false;
     }
 
     for (size_t i = 0; i < response.headers.count; i++) {
         Header h = response.headers.items[i];
-        int ret = dprintf(fd,
+        int ret = dprintf(sd,
             SV_FMT ": " SV_FMT "\r\n",
             SV_ARG(h.key), SV_ARG(h.value)
         );
@@ -173,11 +173,44 @@ bool write_response(int fd, Response response) {
         }
     }
 
-    if (dprintf(fd, "Content-Length: %zu\r\n\r\n", response.body.count) < 0) {
-        return false;
+    size_t content_length = 0;
+    switch (response.body.kind) {
+        case RESPONSE_BODY_NONE:
+            break;
+        case RESPONSE_BODY_BYTES:
+            content_length = response.body.as.bytes.count;
+            break;
+        case RESPONSE_BODY_SENDFILE:
+            content_length = response.body.as.sendfile.size;
+            break;
     }
 
-    if (write(fd, response.body.items, response.body.count) < 0) return false;
+    if (content_length > 0) {
+        if (dprintf(sd, "Content-Length: %zu\r\n\r\n", content_length) < 0) {
+            return false;
+        }
+    }
+
+    switch (response.body.kind) {
+        case RESPONSE_BODY_NONE:
+            break;
+        case RESPONSE_BODY_BYTES: {
+            ArenaStringBuilder *sb = &response.body.as.bytes;
+            log_debug("Writing %zu bytes to response", sb->count);
+            if (write(sd, sb->items, sb->count) < 0) return false;
+        } break;
+        case RESPONSE_BODY_SENDFILE: {
+            ResponseSendFile sf = response.body.as.sendfile;
+            log_debug("Sending file %s with size %zu", sf.path, sf.size);
+
+            int fd = open(sf.path, O_RDONLY);
+            if (fd < 0) return false;
+
+            int ret = sendfile(sd, fd, NULL, sf.size);
+            if (close(fd) < 0 || ret != (ssize_t) sf.size) return false;
+        };
+      break;
+    }
 
     return true;
 }
@@ -325,13 +358,14 @@ bool http_urldecode(StringView sv, ArenaStringBuilder *out) {
 bool try_serve_dir(Response *response, StringView file, StringView dir) {
     if (file.items[0] == '/') file = sv_slice_from(file, 1);
 
-
-    size_t size = snprintf(NULL, 0, SV_FMT "/" SV_FMT, SV_ARG(dir), SV_ARG(file));
-    char *path = alloca(size + 1);
-    snprintf(path, size + 1, SV_FMT "/" SV_FMT, SV_ARG(dir), SV_ARG(file));
+    char *path = arena_sprintf(
+        response->body.arena,
+        SV_FMT "/" SV_FMT,
+        SV_ARG(dir), SV_ARG(file)
+    );
 
     if (strncmp(path, "../", 3) == 0 ||
-        strncmp(path + size - 3, "/..", 3) == 0 ||
+        strncmp(path + strlen(path) - 3, "/..", 3) == 0 ||
         strstr(path, "/../") != NULL) {
         return false;
     }
@@ -339,18 +373,11 @@ bool try_serve_dir(Response *response, StringView file, StringView dir) {
     struct stat file_stat = {0};
     if (stat(path, &file_stat) != 0) return false;
 
-    int fd = open(path, O_RDONLY);
-    if (fd < 0) return false;
-
-    response->body.items = arena_alloc(response->body.arena, file_stat.st_size);
-
-    if (read(fd, response->body.items, file_stat.st_size) < 0) {
-        response->status = HTTP_INTERNAL_SERVER_ERROR;
-    } else {
-        response->body.count = file_stat.st_size;
-    }
-
-    close(fd);
+    response->body.kind = RESPONSE_BODY_SENDFILE;
+    response->body.as.sendfile = (ResponseSendFile) {
+        .path = path,
+        .size = file_stat.st_size,
+    };
 
     return true;
 }

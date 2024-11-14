@@ -4,21 +4,25 @@
 #include "log.h"
 #include "utils.h"
 
+void response_setup_html(Response *response) {
+    response->status = HTTP_OK;
+    headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
+    response->body.kind = RESPONSE_BODY_BYTES;
+    response->body.as.bytes.arena = response->body.arena;
+}
+
 // TODO: parse query
 // TODO: handle POST with body
 bool handle_request(Request *request, Response *response) {
     if (sv_eq_cstr(request->path, "/")) {
-        response->status = HTTP_OK;
-        headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
-        render_index(&response->body);
+        response_setup_html(response);
+        render_index(&response->body.as.bytes);
     } else if (sv_eq_cstr(request->path, "/blogs")) {
-        response->status = HTTP_OK;
-        headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
-        render_blogs(&response->body);
+        response_setup_html(response);
+        render_blogs(&response->body.as.bytes);
     } else if (sv_eq_cstr(request->path, "/music")) {
-        response->status = HTTP_OK;
-        headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
-        render_music(&response->body);
+        response_setup_html(response);
+        render_music(&response->body.as.bytes);
     } else if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
         response->status = HTTP_OK;
     } else {

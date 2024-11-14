@@ -40,10 +40,30 @@ typedef struct {
     int sd;
 } Request;
 
+typedef enum {
+    RESPONSE_BODY_NONE = 0,
+    RESPONSE_BODY_BYTES,
+    RESPONSE_BODY_SENDFILE,
+} ResponseBodyKind;
+
+typedef struct {
+    const char *path;
+    size_t size;
+} ResponseSendFile;
+
+typedef struct {
+    Arena *arena;
+    ResponseBodyKind kind;
+    union {
+        ArenaStringBuilder bytes;
+        ResponseSendFile sendfile;
+    } as;
+} ResponseBody;
+
 typedef struct {
     HttpStatus status;
     HeaderMap headers;
-    ArenaStringBuilder body;
+    ResponseBody body;
     int sd;
 } Response;
 
