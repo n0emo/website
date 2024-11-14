@@ -61,7 +61,7 @@ void render_blogs(ArenaStringBuilder *sb) {
     html_h1_end(&html);
 
     html_ul_begin(&html);
-    for (size_t i = 10; i < 20; i++) {
+    for (size_t i = 10; i < 200; i++) {
         html_li_begin(&html);
         html_text(&html, arena_sprintf(&html.arena, "Blog %zu", i));
         html_li_end(&html);
@@ -109,7 +109,6 @@ void render_music(ArenaStringBuilder *sb) {
 }
 
 void navigation_menu(Html *html) {
-    html_push_class_cstr(html, "navigation");
     html_nav_begin(html);
     html_ul_begin(html);
     link_item(html, "Home", "/");
@@ -122,7 +121,23 @@ void navigation_menu(Html *html) {
 
     html_ul_end(html);
     html_nav_end(html);
+}
+
+void footer(Html *html) {
+    html_footer_begin(html);
+    html_push_class_cstr(html, "footer-text");
+    html_div_begin(html);
     html_pop_classes(html, 1);
+    html_p_begin(html);
+    html_text(html, "Ancient technologies are being used to show this page for you.");
+    html_p_end(html);
+    html_push_attribute_cstrs(html, "href", "https://github.com/n0emo/website");
+    html_a_begin(html);
+    html_text(html, "Source code");
+    html_a_end(html);
+    html_pop_attributes(html, 1);
+    html_div_end(html);
+    html_footer_end(html);
 }
 
 void page_base_begin(Html *html, char *title) {
@@ -138,11 +153,14 @@ void page_base_begin(Html *html, char *title) {
 
     html_body_begin(html);
     navigation_menu(html);
+    html_push_class_cstr(html, "main-content");
     html_div_begin(html);
+    html_pop_classes(html, 1);
 }
 
 void page_base_end(Html *html) {
     html_div_end(html);
+    footer(html);
     html_body_end(html);
     html_end(html);
 }

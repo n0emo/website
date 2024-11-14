@@ -94,6 +94,14 @@ void html_body_end(Html *html) {
     html_tag_end(html, "body");
 }
 
+void html_footer_begin(Html *html) {
+    html_tag_begin(html, "footer");
+}
+
+void html_footer_end(Html *html) {
+    html_tag_end(html, "footer");
+}
+
 void html_title(Html *html, const char *title) {
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, "<title>");
@@ -119,6 +127,14 @@ void html_div_begin(Html *html) {
 
 void html_div_end(Html *html) {
     html_tag_end(html, "div");
+}
+
+void html_p_begin(Html *html) {
+    html_tag_begin(html, "p");
+}
+
+void html_p_end(Html *html) {
+    html_tag_end(html, "p");
 }
 
 void html_a_begin(Html *html) {
