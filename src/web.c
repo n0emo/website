@@ -19,10 +19,10 @@ typedef struct {
 } BlogList;
 
 void response_setup_html(Response *response);
-void render_index(ArenaStringBuilder *sb);
-void render_blogs(ArenaStringBuilder *sb, BlogList list);
-bool get_blogs(Arena *arena, BlogList *list);
-void render_music(ArenaStringBuilder *sb);
+void render_index(StringBuilder *sb);
+void render_blogs(StringBuilder *sb, BlogList list);
+bool get_blogs(Allocator *alloc, BlogList *list);
+void render_music(StringBuilder *sb);
 void page_base_begin(Html *html, char *title);
 void page_base_end(Html *html);
 void navigation_menu(Html *html);
@@ -38,7 +38,7 @@ bool handle_request(Request *request, Response *response) {
         render_index(&response->body.as.bytes);
     } else if (sv_eq_cstr(request->path, "/blogs")) {
         BlogList list = {0};
-        if (!get_blogs(&request->arena, &list)) {
+        if (!get_blogs(&request->alloc, &list)) {
             response->status = HTTP_INTERNAL_SERVER_ERROR;
         } else {
             response_setup_html(response);
@@ -71,13 +71,13 @@ void response_setup_html(Response *response) {
     response->status = HTTP_OK;
     headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
     response->body.kind = RESPONSE_BODY_BYTES;
-    response->body.as.bytes.arena = response->body.arena;
+    response->body.as.bytes.alloc = response->body.alloc;
 }
 
 // TODO: Make webpages design
 // TODO: add some CSS
-void render_index(ArenaStringBuilder *sb) {
-    Html html = {0};
+void render_index(StringBuilder *sb) {
+    Html html = html_begin();
     page_base_begin(&html, "_n0emo website");
 
     html_h1_begin(&html);
@@ -89,8 +89,8 @@ void render_index(ArenaStringBuilder *sb) {
 }
 
 // TODO: render markdown to HTML
-void render_blogs(ArenaStringBuilder *sb, BlogList list) {
-    Html html = {0};
+void render_blogs(StringBuilder *sb, BlogList list) {
+    Html html = html_begin();
     page_base_begin(&html, "Blogs");
 
     html_h1_begin(&html);
@@ -116,8 +116,8 @@ void render_blogs(ArenaStringBuilder *sb, BlogList list) {
                 IniItem item = s.items.items[k];
                 html_li_begin(&html);
                 html_text_cstr(
-                    &html, arena_sprintf(
-                        &html.arena,
+                    &html, mem_sprintf(
+                        &html.alloc,
                         SV_FMT ": " SV_FMT,
                         SV_ARG(item.key), SV_ARG(item.value)
                     )
@@ -135,11 +135,11 @@ void render_blogs(ArenaStringBuilder *sb, BlogList list) {
     html_render_to_sb_and_free(&html, sb);
 }
 
-bool get_blogs(Arena *arena, BlogList *list) {
+bool get_blogs(Allocator *alloc, BlogList *list) {
     bool result = true;
     DIR *dir;
     struct dirent *dirent;
-    ArenaStringBuilder sb = { .arena = arena, 0 };
+    StringBuilder sb = { .alloc = alloc, 0 };
 
     dir = opendir("blogs");
     if (dir == NULL) return_defer(false);
@@ -147,25 +147,25 @@ bool get_blogs(Arena *arena, BlogList *list) {
     while ((dirent = readdir(dir))) {
         const char *d = dirent->d_name;
         if (strncmp(d, ".", 1) == 0 || strncmp(d, "..", 2) == 0) continue;
-        const char *path = arena_sprintf(arena, "blogs/%s/metadata.ini", d);
+        const char *path = mem_sprintf(alloc, "blogs/%s/metadata.ini", d);
 
-        if (!read_file_to_asb(path, &sb)) {
+        if (!read_file_to_sb(path, &sb)) {
             sb.count = 0;
             continue;
         }
 
-        Ini ini = { .arena = arena, .sections = {0} };
+        Ini ini = { .alloc = alloc, .sections = {0} };
         StringView sv = {
-            .items = arena_memdup(arena, sb.items, sb.count),
+            .items = mem_memdup(alloc, sb.items, sb.count),
             .count = sb.count,
         };
         if (parse_ini(sv, &ini)) {
             BlogDescription desc = {
-                .name = cstr_to_sv(arena_strdup(arena, d)),
+                .name = cstr_to_sv(mem_strdup(alloc, d)),
                 .ini = ini,
             };
 
-            ARRAY_APPEND_ARENA(list, desc, arena);
+            ARRAY_APPEND(list, desc, alloc);
         } else {
             log_error("Error parsing %s", path);
         }
@@ -189,8 +189,8 @@ defer:
     return result;
 }
 
-void render_music(ArenaStringBuilder *sb) {
-    Html html = {0};
+void render_music(StringBuilder *sb) {
+    Html html = html_begin();
     page_base_begin(&html, "Music");
 
     html_h1_begin(&html);
@@ -212,8 +212,6 @@ void render_music(ArenaStringBuilder *sb) {
 }
 
 void page_base_begin(Html *html, char *title) {
-    html_begin(html);
-
     html_head_begin(html);
     html_title(html, title);
     html_push_attribute_cstrs(html, "rel", "stylesheet");

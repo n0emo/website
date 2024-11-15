@@ -6,9 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <stdlib.h>
-#define UTILS_MALLOC malloc
-#define UTILS_REALLOC realloc
+#include "alloc.h"
 
 /********* Error handling **********/
 
@@ -19,56 +17,18 @@
 
 #define try(...) if (!(__VA_ARGS__)) return_defer(false)
 
-/********* Arena **********/
-
-typedef struct Region Region;
-
-struct Region {
-    Region *next;
-    size_t count;
-    size_t capacity;
-    uintptr_t data[];
-};
-
-typedef struct {
-    Region *begin;
-    Region *end;
-} Arena;
-
-void *arena_alloc(Arena *arena, size_t bytes);
-void arena_free(Arena *arena);
-Region *new_region(size_t capacity);
-void free_region(Region *region);
-char *arena_sprintf(Arena *a, const char *format, ...);
-void *arena_memdup(Arena *a, const void *mem, size_t size);
-char *arena_strdup(Arena *a, const char *s);
-
 /********* Dynamic array **********/
 
 #define INITIAL_CAP 128
 
-#define ARRAY_APPEND(array, item) do { \
+#define ARRAY_APPEND(array, item, alloc) do { \
     if ((array)->items == NULL) { \
-        (array)->items = (typeof((array)->items)) malloc(INITIAL_CAP * sizeof((array)->items[0])); \
+        (array)->items = (typeof((array)->items)) mem_alloc(alloc, INITIAL_CAP * sizeof((array)->items[0])); \
         (array)->count = 0; \
         (array)->capacity = INITIAL_CAP; \
     } else if ((array)->count >= (array)->capacity) { \
         size_t new_capacity = (array)->capacity * 2; \
-        (array)->items = (typeof((array)->items)) realloc((array)->items, new_capacity * sizeof((array)->items[0])); \
-        (array)->capacity = new_capacity; \
-    } \
-    (array)->items[(array)->count] = (item); \
-    (array)->count++; \
-} while(0) \
-
-#define ARRAY_APPEND_ARENA(array, item, arena) do { \
-    if ((array)->items == NULL) { \
-        (array)->items = (typeof((array)->items)) arena_alloc(arena, INITIAL_CAP * sizeof((array)->items[0])); \
-        (array)->count = 0; \
-        (array)->capacity = INITIAL_CAP; \
-    } else if ((array)->count >= (array)->capacity) { \
-        size_t new_capacity = (array)->capacity * 2; \
-        typeof((array)->items[0]) *items = arena_alloc(arena, new_capacity * sizeof((array)->items[0])); \
+        typeof((array)->items[0]) *items = mem_alloc(alloc, new_capacity * sizeof((array)->items[0])); \
         memcpy(items, (array)->items, (array)->capacity); \
         (array)->items = items; \
         (array)->capacity = new_capacity; \
@@ -86,17 +46,17 @@ bool str_contains(const char *s, char c);
 typedef struct StringView StringView;
 
 typedef struct {
-    Arena *arena;
+    Allocator *alloc;
     char *items;
     size_t count;
     size_t capacity;
-} ArenaStringBuilder;
+} StringBuilder;
 
-void sb_append_char(ArenaStringBuilder *sb, char c);
-void sb_append_buf(ArenaStringBuilder *sb, const char *buf, size_t size);
-void sb_append_cstr(ArenaStringBuilder *sb, const char *s);
-void sb_append_sv(ArenaStringBuilder *sb, StringView sv);
-void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other);
+void sb_append_char(StringBuilder *sb, char c);
+void sb_append_buf(StringBuilder *sb, const char *buf, size_t size);
+void sb_append_cstr(StringBuilder *sb, const char *s);
+void sb_append_sv(StringBuilder *sb, StringView sv);
+void sb_append_sb(StringBuilder *sb, StringBuilder other);
 
 /********* String view **********/
 
@@ -110,7 +70,7 @@ struct StringView {
 
 bool sv_eq_cstr(StringView sv, const char *cstr);
 StringView cstr_to_sv(const char *cstr);
-StringView sb_to_sv(ArenaStringBuilder sb);
+StringView sb_to_sv(StringBuilder sb);
 bool sv_contains(StringView sv, char c);
 bool sv_starts_with(StringView sv, StringView prefix);
 bool sv_starts_with_cstr(StringView sv, const char *prefix);
@@ -122,10 +82,11 @@ StringView sv_trim_left_to_cstr(StringView sv, const char *chars);
 StringView sv_trim_right_to_cstr(StringView sv, const char *chars);
 StringView sv_trim_space(StringView sv);
 StringView sv_chop_by(StringView *sv, char c);
+StringView sv_dup(Allocator *alloc, StringView sv);
 
 /********** Filesystem ***********/
 
-bool read_file_to_asb(const char *path, ArenaStringBuilder *asb);
+bool read_file_to_sb(const char *path, StringBuilder *sb);
 
 #endif // UTILS_H_
 

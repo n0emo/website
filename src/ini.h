@@ -2,6 +2,7 @@
 #define INI_H_
 
 #include "utils.h"
+#include "alloc.h"
 
 typedef struct {
     StringView key;
@@ -26,7 +27,7 @@ typedef struct {
 } IniSections;
 
 typedef struct {
-    Arena *arena;
+    Allocator *alloc;
     IniSections sections;
 } Ini;
 

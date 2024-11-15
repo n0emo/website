@@ -22,7 +22,7 @@ typedef struct {
 } Header;
 
 typedef struct {
-    Arena *arena;
+    Allocator *alloc;
     Header *items;
     size_t count;
     size_t capacity;
@@ -30,13 +30,14 @@ typedef struct {
 
 typedef struct {
     Arena arena;
+    Allocator alloc;
     HttpMethod method;
     StringView resource_path;
     StringView version;
     StringView path;
     StringView query_string;
     HeaderMap headers;
-    ArenaStringBuilder body;
+    StringBuilder body;
     int sd;
 } Request;
 
@@ -53,9 +54,10 @@ typedef struct {
 
 typedef struct {
     Arena *arena;
+    Allocator *alloc;
     ResponseBodyKind kind;
     union {
-        ArenaStringBuilder bytes;
+        StringBuilder bytes;
         ResponseSendFile sendfile;
     } as;
 } ResponseBody;
@@ -77,14 +79,14 @@ typedef struct {
 bool start_server(int port, request_handler_t *handler);
 bool accept_connection(int sd, request_handler_t *handler);
 bool handle_connection(ThreadData *data);
-bool read_request_header_lines(int sd, ArenaStringBuilder *header, ArenaStringBuilder *body);
+bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body);
 bool parse_request(int fd, Request *request);
 void headers_insert(HeaderMap *map, Header header);
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value);
 const char *status_desc(HttpStatus status);
 const char *method_str(HttpMethod method);
 bool write_response(int fd, Response response);
-bool http_urldecode(StringView sv, ArenaStringBuilder *out);
+bool http_urldecode(StringView sv, StringBuilder *out);
 
 bool try_serve_dir(Response *response, StringView file, StringView dir);
 

@@ -22,13 +22,14 @@ typedef struct {
 
 typedef struct {
     Arena arena;
-    ArenaStringBuilder sb;
+    Allocator alloc;
+    StringBuilder sb;
     Attributes attributes;
     Classes classes;
     size_t indentation;
 } Html;
 
-void html_begin(Html *html);
+Html html_begin();
 void html_end(Html *html);
 void html_push_attribute(Html *html, Attribute attribute);
 void html_push_attribute_cstrs(Html *html, const char *name, const char *value);
@@ -67,7 +68,7 @@ void html_ul_begin(Html *html);
 void html_ul_end(Html *html);
 void html_li_begin(Html *html);
 void html_li_end(Html *html);
-void html_render_to_sb_and_free(Html *html, ArenaStringBuilder *sb);
+void html_render_to_sb_and_free(Html *html, StringBuilder *sb);
 
 void html_append_current_indentation(Html *html);
 void html_render_class(Html *html);

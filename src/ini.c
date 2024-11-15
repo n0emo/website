@@ -19,7 +19,7 @@ bool parse_ini(StringView text, Ini *ini) {
                 .name = sv_trim_space(section_name),
                 .items = {0},
             };
-            ARRAY_APPEND_ARENA(&ini->sections, section, ini->arena);
+            ARRAY_APPEND(&ini->sections, section, ini->alloc);
             current = &ini->sections.items[ini->sections.count - 1];
         } else if (current == NULL) {
             return false;
@@ -30,7 +30,7 @@ bool parse_ini(StringView text, Ini *ini) {
             if (value.count == 0) return false;
 
             IniItem item = { .key = key, .value = value };
-            ARRAY_APPEND_ARENA(&current->items, item, ini->arena);
+            ARRAY_APPEND(&current->items, item, ini->alloc);
         }
     }
 

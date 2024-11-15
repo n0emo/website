@@ -1,11 +1,16 @@
 #include "html.h"
+#include "alloc.h"
 
 #include <assert.h>
 
-void html_begin(Html *html) {
-    html->sb.arena = &html->arena;
-    sb_append_cstr(&html->sb, "<!DOCTYPE html>\n");
-    html_tag_begin(html, "html");
+Html html_begin() {
+    Html html = {0};
+    html.arena = (Arena) {0};
+    html.alloc = new_arena_allocator(&html.arena);
+    html.sb.alloc = &html.alloc;
+    sb_append_cstr(&html.sb, "<!DOCTYPE html>\n");
+    html_tag_begin(&html, "html");
+    return html;
 }
 
 void html_end(Html *html) {
@@ -14,7 +19,7 @@ void html_end(Html *html) {
 }
 
 void html_push_attribute(Html *html, Attribute attribute) {
-    ARRAY_APPEND_ARENA(&html->attributes, attribute, &html->arena);
+    ARRAY_APPEND(&html->attributes, attribute, &html->alloc);
 }
 
 void html_push_attribute_cstrs(Html *html, const char *name, const char *value) {
@@ -31,7 +36,7 @@ void html_pop_attributes(Html *html, size_t count) {
 }
 
 void html_push_class(Html *html, StringView cls) {
-    ARRAY_APPEND_ARENA(&html->classes, cls, &html->arena);
+    ARRAY_APPEND(&html->classes, cls, &html->alloc);
 }
 
 void html_push_class_cstr(Html *html, const char *cls) {
@@ -191,9 +196,9 @@ void html_li_end(Html *html) {
     html_tag_end(html, "li");
 }
 
-void html_render_to_sb_and_free(Html *html, ArenaStringBuilder *sb) {
+void html_render_to_sb_and_free(Html *html, StringBuilder *sb) {
     sb_append_sb(sb, html->sb);
-    arena_free(&html->arena);
+    arena_free_arena(&html->arena);
 }
 
 void html_append_current_indentation(Html *html) {

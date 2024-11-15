@@ -99,13 +99,15 @@ bool handle_connection(ThreadData *data) {
 
     bool result = true;
     Request request = {0};
-    request.headers.arena = &request.arena;
-    request.body.arena = &request.arena;
+    request.alloc = new_arena_allocator(&request.arena);
+    request.headers.alloc = &request.alloc;
+    request.body.alloc = &request.alloc;
     request.sd = data->connfd;
 
     Response response = {0};
     response.body.arena = &request.arena;
-    response.headers.arena = &request.arena;
+    response.body.alloc = &request.alloc;
+    response.headers.alloc = &request.alloc;
     response.sd = data->connfd;
 
     try(parse_request(data->connfd, &request));
@@ -116,7 +118,7 @@ bool handle_connection(ThreadData *data) {
     try(write_response(data->connfd, response));
 
 defer:
-    arena_free(&request.arena);
+    arena_free_arena(&request.arena);
     close(data->connfd);
     free(data);
     return result;
@@ -144,7 +146,7 @@ const char *method_str(HttpMethod method) {
 
 // TODO: hash map or binary tree
 void headers_insert(HeaderMap *map, Header header) {
-    ARRAY_APPEND_ARENA(map, header, map->arena);
+    ARRAY_APPEND(map, header, map->alloc);
 }
 
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value) {
@@ -195,7 +197,7 @@ bool write_response(int sd, Response response) {
         case RESPONSE_BODY_NONE:
             break;
         case RESPONSE_BODY_BYTES: {
-            ArenaStringBuilder *sb = &response.body.as.bytes;
+            StringBuilder *sb = &response.body.as.bytes;
             log_debug("Writing %zu bytes to response", sb->count);
             if (write(sd, sb->items, sb->count) < 0) return false;
         } break;
@@ -232,21 +234,12 @@ bool request_advance(int sd, StringView *sv, char buf[BUF_CAP], size_t count) {
     return request_peek(sd, sv, buf);
 }
 
-// TODO: general trim in sv
 void request_trim_cr(StringView *sv) {
     if (sv->items[sv->count - 1] == '\r') sv->count--;
 }
 
-// TODO: arena memdup
-StringView request_copy_sv(Arena *arena, StringView sv) {
-    char *items = arena_alloc(arena, sv.count);
-    assert(items != NULL);
-    memcpy(items, sv.items, sv.count);
-    return (StringView) { items, sv.count };
-}
-
 // TODO: time limit
-bool read_request_header_lines(int sd, ArenaStringBuilder *header, ArenaStringBuilder *body) {
+bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body) {
     // TODO maybe it's not a good idea to allocate 8Kb at the stack for each request
     char buf[BUF_CAP] = {0};
 
@@ -281,7 +274,7 @@ bool read_request_header_lines(int sd, ArenaStringBuilder *header, ArenaStringBu
 }
 
 bool parse_request(int fd, Request *request) {
-    ArenaStringBuilder header = { .arena = &request->arena, 0 };
+    StringBuilder header = { .alloc = &request->alloc, 0 };
 
     if (!read_request_header_lines(fd, &header, &request->body)) return false;
     StringView sv = {
@@ -302,8 +295,8 @@ bool parse_request(int fd, Request *request) {
         return false;
     }
 
-    request->resource_path = request_copy_sv(&request->arena, sv_chop_by(&status_line, ' '));
-    request->version = request_copy_sv(&request->arena, sv_chop_by(&status_line, '\n'));
+    request->resource_path = sv_dup(&request->alloc, sv_chop_by(&status_line, ' '));
+    request->version = sv_dup(&request->alloc, sv_chop_by(&status_line, '\n'));
 
     StringView header_line;
     while (true) {
@@ -314,13 +307,13 @@ bool parse_request(int fd, Request *request) {
             break;
         }
 
-        StringView key = request_copy_sv(&request->arena, sv_chop_by(&header_line, ':'));
-        StringView value = request_copy_sv(&request->arena, sv_slice_from(header_line, 1));
+        StringView key = sv_dup(&request->alloc, sv_chop_by(&header_line, ':'));
+        StringView value = sv_dup(&request->alloc, sv_slice_from(header_line, 1));
         headers_insert(&request->headers, (Header) { key, value });
     }
 
     StringView resource_path = request->resource_path;
-    ArenaStringBuilder sb = { .arena = &request->arena, 0 };
+    StringBuilder sb = { .alloc = &request->alloc, 0 };
     StringView path = sv_chop_by(&resource_path, '?');
     if (!http_urldecode(path, &sb)) return false;
     request->path = sb_to_sv(sb);
@@ -330,7 +323,7 @@ bool parse_request(int fd, Request *request) {
     return true;
 }
 
-bool http_urldecode(StringView sv, ArenaStringBuilder *out) {
+bool http_urldecode(StringView sv, StringBuilder *out) {
     static const char *allowed = "!#$&'()*+,/:;=?@[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
 
     while (sv.count > 0) {
@@ -358,8 +351,8 @@ bool http_urldecode(StringView sv, ArenaStringBuilder *out) {
 bool try_serve_dir(Response *response, StringView file, StringView dir) {
     if (file.items[0] == '/') file = sv_slice_from(file, 1);
 
-    char *path = arena_sprintf(
-        response->body.arena,
+    char *path = mem_sprintf(
+        response->body.alloc,
         SV_FMT "/" SV_FMT,
         SV_ARG(dir), SV_ARG(file)
     );

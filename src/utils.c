@@ -8,92 +8,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define REGION_DEFAULT_CAPACITY (8 * 1024)
-
-void *arena_alloc(Arena *arena, size_t bytes) {
-    size_t size = (bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
-
-    if (arena->begin == NULL) {
-        assert(arena->end == NULL);
-        size_t capacity = REGION_DEFAULT_CAPACITY;
-        if (capacity < size) capacity = size;
-        arena->begin = new_region(capacity);
-        arena->end = arena->begin;
-    }
-
-    while (arena->end->count + size > arena->end->capacity && arena->end->next != NULL) {
-        arena->end = arena->end->next;
-    }
-
-     if (arena->end->count + size > arena->end->capacity) {
-        assert(arena->end->next == NULL);
-        size_t capacity = REGION_DEFAULT_CAPACITY;
-        if (capacity < size) capacity = size;
-        arena->end->next = new_region(capacity);
-        arena->end = arena->end->next;
-    }
-
-    void *result = &arena->end->data[arena->end->count];
-    arena->end->count += size;
-    return result;
-}
-
-void arena_free(Arena *arena) {
-    Region *region = arena->begin;
-    while (region != NULL) {
-        Region *next = region->next;
-        free_region(region);
-        region = next;
-    }
-
-    arena->begin = NULL;
-    arena->end = NULL;
-}
-
-Region *new_region(size_t capacity) {
-    size_t size = sizeof(Region) + sizeof(uintptr_t) * capacity;
-    Region *region = malloc(size);
-
-    region->next = NULL;
-    region->count = 0;
-    region->capacity = capacity;
-
-    return region;
-}
-
-void free_region(Region *region) {
-    free(region);
-}
-
-char *arena_sprintf(Arena *a, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    int size = vsnprintf(NULL, 0, format, args);
-    va_end(args);
-
-    assert(size >= 0);
-    char *result = (char*)arena_alloc(a, size + 1);
-    va_start(args, format);
-    vsnprintf(result, size + 1, format, args);
-    va_end(args);
-
-    return result;
-}
-
-void *arena_memdup(Arena *a, const void *mem, size_t size) {
-    void *new = arena_alloc(a, size);
-    memcpy(new, mem, size);
-    return new;
-}
-
-char *arena_strdup(Arena *a, const char *s) {
-    size_t len = strlen(s);
-    char *new = arena_alloc(a, len + 1);
-    strncpy(new, s, len);
-    new[len] = '\0';
-    return new;
-}
-
 bool str_contains(const char *s, char c) {
     while (*s != '\0') {
         if (*s == c) return true;
@@ -102,28 +16,28 @@ bool str_contains(const char *s, char c) {
     return false;
 }
 
-void sb_append_char(ArenaStringBuilder *sb, char c)  {
-    ARRAY_APPEND_ARENA(sb, c, sb->arena);
+void sb_append_char(StringBuilder *sb, char c)  {
+    ARRAY_APPEND(sb, c, sb->alloc);
 }
 
-void sb_append_buf(ArenaStringBuilder *sb, const char *buf, size_t size) {
+void sb_append_buf(StringBuilder *sb, const char *buf, size_t size) {
     for (size_t i = 0; i < size; i++) {
         sb_append_char(sb, buf[i]);
     }
 }
 
-void sb_append_cstr(ArenaStringBuilder *sb, const char *s) {
+void sb_append_cstr(StringBuilder *sb, const char *s) {
     while(*s != '\0') {
         sb_append_char(sb, *s);
         s++;
     }
 }
 
-void sb_append_sv(ArenaStringBuilder *sb, StringView sv) {
+void sb_append_sv(StringBuilder *sb, StringView sv) {
     sb_append_buf(sb, sv.items, sv.count);
 }
 
-void sb_append_sb(ArenaStringBuilder *sb, ArenaStringBuilder other) {
+void sb_append_sb(StringBuilder *sb, StringBuilder other) {
     sb_append_buf(sb, other.items, other.count);
 }
 
@@ -134,7 +48,7 @@ StringView cstr_to_sv(const char *cstr) {
     };
 }
 
-StringView sb_to_sv(ArenaStringBuilder sb) {
+StringView sb_to_sv(StringBuilder sb) {
     return (StringView) {
         .items = sb.items,
         .count = sb.count,
@@ -245,7 +159,14 @@ StringView sv_chop_by(StringView *sv, char c) {
     return result;
 }
 
-bool read_file_to_asb(const char *path, ArenaStringBuilder *asb) {
+StringView sv_dup(Allocator *alloc, StringView sv) {
+    return (StringView) {
+        .items = mem_memdup(alloc, sv.items, sv.count),
+        .count = sv.count,
+    };
+}
+
+bool read_file_to_sb(const char *path, StringBuilder *asb) {
     bool result = true;
     int fd = open(path, O_RDONLY);
     if (fd < 0) return_defer(false);
