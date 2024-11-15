@@ -113,10 +113,10 @@ void html_footer_end(Html *html) {
     html_tag_end(html, "footer");
 }
 
-void html_title(Html *html, const char *title) {
+void html_title(Html *html, StringView title) {
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, "<title>");
-    sb_append_cstr(&html->sb, title);
+    sb_append_sv(&html->sb, title);
     sb_append_cstr(&html->sb, "</title>\n");
 }
 

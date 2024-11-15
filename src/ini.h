@@ -32,5 +32,7 @@ typedef struct {
 } Ini;
 
 bool parse_ini(StringView text, Ini *ini);
+IniSection *ini_get_section(Ini ini, StringView name);
+IniItem *ini_get_item(IniSection section, StringView name);
 
 #endif // INI_H_

@@ -324,7 +324,11 @@ bool parse_request(int fd, Request *request) {
 }
 
 bool http_urldecode(StringView sv, StringBuilder *out) {
-    static const char *allowed = "!#$&'()*+,/:;=?@[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+    static const char *allowed =
+        "!#$&'()*+,/:;=?@[]"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789-._~";
 
     while (sv.count > 0) {
         char c = sv.items[0];

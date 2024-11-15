@@ -59,6 +59,11 @@ bool sv_eq_cstr(StringView sv, const char *cstr) {
     return strlen(cstr) == sv.count && strncmp(sv.items, cstr, sv.count) == 0;
 }
 
+bool sv_eq_sv(StringView a, StringView b) {
+    if (a.count != b.count) return false;
+    return memcmp(a.items, b.items, a.count) == 0;
+}
+
 bool sv_starts_with(StringView sv, StringView prefix) {
     if (sv.count < prefix.count) return false;
     return strncmp(sv.items, prefix.items, prefix.count) == 0;

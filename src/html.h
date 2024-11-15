@@ -48,7 +48,7 @@ void html_body_begin(Html *html);
 void html_body_end(Html *html);
 void html_footer_begin(Html *html);
 void html_footer_end(Html *html);
-void html_title(Html *html, const char *title);
+void html_title(Html *html, StringView title);
 void html_link(Html *html);
 void html_nav_begin(Html *html);
 void html_nav_end(Html *html);

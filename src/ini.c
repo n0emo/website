@@ -36,3 +36,24 @@ bool parse_ini(StringView text, Ini *ini) {
 
     return true;
 }
+
+
+IniSection *ini_get_section(Ini ini, StringView name) {
+    for (size_t i = 0; i < ini.sections.count; i++) {
+        if (sv_eq_sv(ini.sections.items[i].name, name)) {
+            return &ini.sections.items[i];
+        }
+    }
+
+    return NULL;
+}
+
+IniItem *ini_get_item(IniSection section, StringView name) {
+    for (size_t i = 0; i < section.items.count; i++) {
+        if (sv_eq_sv(section.items.items[i].key, name)) {
+            return &section.items.items[i];
+        }
+    }
+
+    return NULL;
+}
