@@ -4,6 +4,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define REGION_DEFAULT_CAPACITY (8 * 1024)
 
@@ -77,6 +80,28 @@ char *arena_sprintf(Arena *a, const char *format, ...) {
     return result;
 }
 
+void *arena_memdup(Arena *a, const void *mem, size_t size) {
+    void *new = arena_alloc(a, size);
+    memcpy(new, mem, size);
+    return new;
+}
+
+char *arena_strdup(Arena *a, const char *s) {
+    size_t len = strlen(s);
+    char *new = arena_alloc(a, len + 1);
+    strncpy(new, s, len);
+    new[len] = '\0';
+    return new;
+}
+
+bool str_contains(const char *s, char c) {
+    while (*s != '\0') {
+        if (*s == c) return true;
+        s++;
+    }
+    return false;
+}
+
 void sb_append_char(ArenaStringBuilder *sb, char c)  {
     ARRAY_APPEND_ARENA(sb, c, sb->arena);
 }
@@ -129,6 +154,23 @@ bool sv_starts_with_cstr(StringView sv, const char *prefix) {
     return sv_starts_with(sv, cstr_to_sv(prefix));
 }
 
+bool sv_contains(StringView sv, char c) {
+    for (size_t i = 0; i < sv.count; i++) {
+        if (sv.items[i] == c) return true;
+    }
+
+    return false;
+}
+
+StringView sv_slice(StringView sv, size_t start, size_t count) {
+    if (sv.count < start + count) return (StringView) {0};
+
+    return (StringView) {
+        .items = sv.items + start,
+        .count = count,
+    };
+}
+
 StringView sv_slice_from(StringView sv, size_t index) {
     if (sv.count < index) {
         return (StringView) {0};
@@ -140,7 +182,37 @@ StringView sv_slice_from(StringView sv, size_t index) {
     };
 }
 
-StringView sv_trim_right_to_cstr(StringView sv, char *chars) {
+StringView sv_trim_left_by_cstr(StringView sv, const char *chars) {
+    StringView result = sv;
+
+    while (result.count > 0 && strchr(chars, result.items[result.count - 1]) != NULL) {
+        result.count--;
+    }
+
+    return result;
+}
+
+StringView sv_trim_right_by_cstr(StringView sv, const char *chars) {
+    StringView result = sv;
+
+    while (result.count > 0 && strchr(chars, result.items[0]) != NULL) {
+        result = sv_slice_from(sv, 1);
+    }
+
+    return result;
+}
+
+StringView sv_trim_left_to_cstr(StringView sv, const char *chars) {
+    StringView result = sv;
+
+    while (result.count > 0 && strchr(chars, result.items[result.count - 1]) == NULL) {
+        result.count--;
+    }
+
+    return result;
+}
+
+StringView sv_trim_right_to_cstr(StringView sv, const char *chars) {
     StringView result = sv;
 
     while (result.count > 0 && strchr(chars, result.items[0]) == NULL) {
@@ -148,6 +220,11 @@ StringView sv_trim_right_to_cstr(StringView sv, char *chars) {
     }
 
     return result;
+}
+
+StringView sv_trim_space(StringView sv) {
+    const char *chars = " \r\n\t";
+    return sv_trim_right_by_cstr(sv_trim_left_by_cstr( sv, chars), chars);
 }
 
 StringView sv_chop_by(StringView *sv, char c) {
@@ -165,5 +242,24 @@ StringView sv_chop_by(StringView *sv, char c) {
         *sv = sv_slice_from(*sv, 1);
     }
 
+    return result;
+}
+
+bool read_file_to_asb(const char *path, ArenaStringBuilder *asb) {
+    bool result = true;
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) return_defer(false);
+    struct stat stat_buf;
+    if (stat(path, &stat_buf) < 0) return_defer(false);
+
+    char buf[1024] = {0};
+    while ((long) asb->count < stat_buf.st_size) {
+        ssize_t size = read(fd, buf, sizeof(buf));
+        if (size < 0) return_defer(false);
+        sb_append_buf(asb, buf, (size_t) size);
+    }
+
+defer:
+    if (fd > 0) close(fd);
     return result;
 }

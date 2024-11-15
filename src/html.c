@@ -72,9 +72,15 @@ void html_tag_end(Html *html, const char *tag) {
     sb_append_cstr(&html->sb, ">\n");
 }
 
-void html_text(Html *html, const char *text) {
+void html_text_cstr(Html *html, const char *text) {
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, text);
+    sb_append_cstr(&html->sb, "\n");
+}
+
+void html_text(Html *html, StringView sv) {
+    html_append_current_indentation(html);
+    sb_append_sv(&html->sb, sv);
     sb_append_cstr(&html->sb, "\n");
 }
 
@@ -159,6 +165,14 @@ void html_h2_begin(Html *html) {
 
 void html_h2_end(Html *html) {
     html_tag_end(html, "h2");
+}
+
+void html_h3_begin(Html *html) {
+    html_tag_begin(html, "h3");
+}
+
+void html_h3_end(Html *html) {
+    html_tag_end(html, "h3");
 }
 
 void html_ul_begin(Html *html) {

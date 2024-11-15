@@ -40,6 +40,8 @@ void arena_free(Arena *arena);
 Region *new_region(size_t capacity);
 void free_region(Region *region);
 char *arena_sprintf(Arena *a, const char *format, ...);
+void *arena_memdup(Arena *a, const void *mem, size_t size);
+char *arena_strdup(Arena *a, const char *s);
 
 /********* Dynamic array **********/
 
@@ -75,6 +77,10 @@ char *arena_sprintf(Arena *a, const char *format, ...);
     (array)->count++; \
 } while(0) \
 
+/********* String **********/
+
+bool str_contains(const char *s, char c);
+
 /********* String builder **********/
 
 typedef struct StringView StringView;
@@ -105,11 +111,21 @@ struct StringView {
 bool sv_eq_cstr(StringView sv, const char *cstr);
 StringView cstr_to_sv(const char *cstr);
 StringView sb_to_sv(ArenaStringBuilder sb);
+bool sv_contains(StringView sv, char c);
 bool sv_starts_with(StringView sv, StringView prefix);
 bool sv_starts_with_cstr(StringView sv, const char *prefix);
+StringView sv_slice(StringView sv, size_t start, size_t count);
 StringView sv_slice_from(StringView sv, size_t index);
-StringView sv_trim_right_to_cstr(StringView sv, char *chars);
+StringView sv_trim_right_by_cstr(StringView sv,const char *chars);
+StringView sv_trim_left_by_cstr(StringView sv, const char *chars);
+StringView sv_trim_left_to_cstr(StringView sv, const char *chars);
+StringView sv_trim_right_to_cstr(StringView sv, const char *chars);
+StringView sv_trim_space(StringView sv);
 StringView sv_chop_by(StringView *sv, char c);
+
+/********** Filesystem ***********/
+
+bool read_file_to_asb(const char *path, ArenaStringBuilder *asb);
 
 #endif // UTILS_H_
 
