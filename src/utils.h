@@ -68,6 +68,7 @@ struct StringView {
     size_t count;
 };
 
+int sv_cmp(StringView a, StringView b);
 bool sv_eq_cstr(StringView sv, const char *cstr);
 bool sv_eq_sv(StringView a, StringView b);
 StringView cstr_to_sv(const char *cstr);

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "utils.h"
+#include "rbtree.h"
 
 typedef enum {
     HTTP_OK = 200,
@@ -21,11 +22,9 @@ typedef struct {
     StringView value;
 } Header;
 
+// TODO: multimap
 typedef struct {
-    Allocator *alloc;
-    Header *items;
-    size_t count;
-    size_t capacity;
+    RBTree tree;
 } HeaderMap;
 
 typedef struct {

@@ -55,6 +55,25 @@ StringView sb_to_sv(StringBuilder sb) {
     };
 }
 
+int sv_cmp(StringView a, StringView b) {
+    size_t min_size = a.count > b.count ? b.count : a.count;
+
+    int cmp = strncmp(a.items, b.items, min_size);
+    if (cmp != 0) {
+        return cmp;
+    }
+
+    if (a.count < b.count) {
+        return -1;
+    }
+
+    if (a.count > b.count) {
+        return 1;
+    }
+
+    return 0;
+}
+
 bool sv_eq_cstr(StringView sv, const char *cstr) {
     return strlen(cstr) == sv.count && strncmp(sv.items, cstr, sv.count) == 0;
 }

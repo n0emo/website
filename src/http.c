@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "log.h"
+#include "rbtree.h"
 #include "utils.h"
 
 bool start_server(int port, request_handler_t *handler) {
@@ -94,20 +95,35 @@ defer:
     return result;
 }
 
+int header_cmp(const void *a, const void *b, void *user_data) {
+    (void) user_data;
+    const Header *first = (const Header *) a;
+    const Header *second = (const Header *) b;
+    return sv_cmp(first->key, second->key);
+}
+
+HeaderMap header_map_new(void *user_data, Arena *arena) {
+    RBTree tree = rbtree_new(sizeof(Header), header_cmp, user_data);
+    tree.alloc = new_arena_allocator(arena);
+    return (HeaderMap) {
+        .tree = tree,
+    };
+}
+
 bool handle_connection(ThreadData *data) {
     pthread_detach(pthread_self());
 
     bool result = true;
     Request request = {0};
     request.alloc = new_arena_allocator(&request.arena);
-    request.headers.alloc = &request.alloc;
+    request.headers = header_map_new(&request, &request.arena);
     request.body.alloc = &request.alloc;
     request.sd = data->connfd;
 
     Response response = {0};
     response.body.arena = &request.arena;
     response.body.alloc = &request.alloc;
-    response.headers.alloc = &request.alloc;
+    response.headers = header_map_new(&response, &request.arena);
     response.sd = data->connfd;
 
     try(parse_request(data->connfd, &request));
@@ -146,7 +162,7 @@ const char *method_str(HttpMethod method) {
 
 // TODO: hash map or binary tree
 void headers_insert(HeaderMap *map, Header header) {
-    ARRAY_APPEND(map, header, map->alloc);
+    rbtree_insert(&map->tree, &header);
 }
 
 void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value) {
@@ -158,22 +174,23 @@ void headers_insert_cstrs(HeaderMap *map, const char *key, const char *value) {
     headers_insert(map, header);
 }
 
+void response_write_rbtree_iter(const void *element, void *user_data) {
+    const Header *h= (const Header *) element;
+    Response *response = (Response *) user_data;
+
+    int ret = dprintf(
+        response->sd,
+        SV_FMT ": " SV_FMT "\r\n",
+        SV_ARG(h->key), SV_ARG(h->value)
+    );
+}
+
 bool write_response(int sd, Response response) {
     if (dprintf(sd, "HTTP/1.1 %d %s\r\n", response.status, status_desc(response.status)) < 0) {
         return false;
     }
 
-    for (size_t i = 0; i < response.headers.count; i++) {
-        Header h = response.headers.items[i];
-        int ret = dprintf(sd,
-            SV_FMT ": " SV_FMT "\r\n",
-            SV_ARG(h.key), SV_ARG(h.value)
-        );
-
-        if (ret < 0) {
-            return false;
-        }
-    }
+    rbtree_iterate_ascending(&response.headers.tree, response_write_rbtree_iter);
 
     size_t content_length = 0;
     switch (response.body.kind) {
@@ -235,6 +252,7 @@ bool request_advance(int sd, StringView *sv, char buf[BUF_CAP], size_t count) {
 }
 
 void request_trim_cr(StringView *sv) {
+    assert(sv->count > 0);
     if (sv->items[sv->count - 1] == '\r') sv->count--;
 }
 
@@ -301,11 +319,12 @@ bool parse_request(int fd, Request *request) {
     StringView header_line;
     while (true) {
         header_line = sv_chop_by(&sv, '\n');
-        request_trim_cr(&header_line);
 
         if (header_line.count == 0) {
             break;
         }
+
+        request_trim_cr(&header_line);
 
         StringView key = sv_dup(&request->alloc, sv_chop_by(&header_line, ':'));
         StringView value = sv_dup(&request->alloc, sv_slice_from(header_line, 1));
