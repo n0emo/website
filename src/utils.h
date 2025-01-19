@@ -90,5 +90,9 @@ StringView sv_dup(Allocator *alloc, StringView sv);
 
 bool read_file_to_sb(const char *path, StringBuilder *sb);
 
+/************ Other **************/
+
+void wait_for_ctrl_c();
+
 #endif // UTILS_H_
 

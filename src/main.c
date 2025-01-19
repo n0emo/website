@@ -1,7 +1,10 @@
 #include <errno.h>
+#include <string.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <unistd.h>
 
 #include "http.h"
 #include "web.h"

@@ -9,7 +9,6 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
-#include <pthread.h>
 #include <sys/file.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -18,6 +17,7 @@
 
 #include "log.h"
 #include "rbtree.h"
+#include "thrdpool.h"
 #include "utils.h"
 
 bool start_server(int port, request_handler_t *handler) {
@@ -58,16 +58,20 @@ bool start_server(int port, request_handler_t *handler) {
     getnameinfo((struct sockaddr *) &addr, sizeof(addr), addr_name, sizeof(addr_name), addr_port, sizeof(addr_port), NI_NUMERICHOST | NI_NUMERICSERV);
     log_info("Serving at %s:%s", addr_name, addr_port);
 
+    ThreadPool pool = {0};
+    thrdpool_init(&pool, 100);
+
     while (true) {
-        accept_connection(sd, handler);
+        accept_connection(sd, handler, &pool);
     }
 
 defer:
     if (sd != -1) close(sd);
+    thrdpool_destroy(&pool);
     return result;
 }
 
-bool accept_connection(int sd, request_handler_t *handler) {
+bool accept_connection(int sd, request_handler_t *handler, ThreadPool *pool) {
     bool result = true;
     ThreadData *data = NULL;
     int connfd = accept(sd, NULL, NULL);
@@ -77,15 +81,11 @@ bool accept_connection(int sd, request_handler_t *handler) {
         return_defer(false);
     }
 
-    pthread_t thrd;
     data = calloc(1, sizeof(ThreadData));
     data->connfd = connfd;
     data->handler = handler;
-    // TODO: maybe we can preallocate threads and reuse themto handle requests
-    if (pthread_create(&thrd, NULL, (void *(*)(void *)) handle_connection, (void *) data) != 0) {
-        perror("error creating thread");
-        return_defer(false);
-    }
+
+    thrdpool_add_job(pool, handle_connection, (void *) data);
 
 defer:
     if (!result) {
@@ -110,8 +110,8 @@ HeaderMap header_map_new(void *user_data, Arena *arena) {
     };
 }
 
-bool handle_connection(ThreadData *data) {
-    pthread_detach(pthread_self());
+int handle_connection(void *arg) {
+    ThreadData *data = (ThreadData *) arg;
 
     bool result = true;
     Request request = {0};
@@ -137,7 +137,7 @@ defer:
     arena_free_arena(&request.arena);
     close(data->connfd);
     free(data);
-    return result;
+    return !result;
 }
 
 // TODO: more statuses

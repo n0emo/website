@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 
-#include "utils.h"
 #include "rbtree.h"
+#include "thrdpool.h"
+#include "utils.h"
 
 typedef enum {
     HTTP_OK = 200,
@@ -76,8 +77,8 @@ typedef struct {
 } ThreadData;
 
 bool start_server(int port, request_handler_t *handler);
-bool accept_connection(int sd, request_handler_t *handler);
-bool handle_connection(ThreadData *data);
+bool accept_connection(int sd, request_handler_t *handler, ThreadPool *pool);
+int handle_connection(void *arg);
 bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body);
 bool parse_request(int fd, Request *request);
 void headers_insert(HeaderMap *map, Header header);
