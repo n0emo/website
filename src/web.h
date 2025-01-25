@@ -1,9 +1,9 @@
 #ifndef WEB_H_
 #define WEB_H_
 
-#include "http.h"
+#include "http/http.h"
 
-bool handle_request(Request *request, Response *response);
+bool handle_request(HttpRequest *request, HttpResponse *response);
 
 #endif // WEB_H_
 

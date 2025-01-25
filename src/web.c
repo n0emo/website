@@ -21,7 +21,7 @@ typedef struct {
     size_t capacity;
 } BlogList;
 
-void response_setup_html(Response *response);
+void response_setup_html(HttpResponse *response);
 void render_index(StringBuilder *sb);
 void render_blogs(StringBuilder *sb, BlogList list);
 bool get_blogs(Allocator *alloc, BlogList *list);
@@ -39,7 +39,7 @@ void link_sv(Html *html, StringView text, StringView destination);
 
 // TODO: parse query
 // TODO: handle POST with body
-bool handle_request(Request *request, Response *response) {
+bool handle_request(HttpRequest *request, HttpResponse *response) {
     if (sv_eq_cstr(request->path, "/")) {
         response_setup_html(response);
         render_index(&response->body.as.bytes);
@@ -74,19 +74,19 @@ bool handle_request(Request *request, Response *response) {
 
     log_debug(
         "%s " SV_FMT ": %d %s",
-        method_str(request->method),
+        http_method_str(request->method),
         SV_ARG(request->path),
         // TODO
         response->status,
-        status_desc(response->status)
+        http_status_desc(response->status)
     );
 
     return true;
 }
 
-void response_setup_html(Response *response) {
+void response_setup_html(HttpResponse *response) {
     response->status = HTTP_OK;
-    headers_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
+    http_headermap_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
     response->body.kind = RESPONSE_BODY_BYTES;
     response->body.as.bytes.alloc = response->body.alloc;
 }

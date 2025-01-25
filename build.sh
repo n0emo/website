@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cflags="-Wall -Wextra -Isrc"
+sources=$(find src -name "*.c")
+
 mkdir -p build
-clang -Wall -Wextra -DLOG_WITH_FILE -fsanitize=undefined src/*.c -g -o build/server
-#clang -Wall -Wextra src/*.c -g -o build/server
+clang $cflags -DLOG_WITH_FILE $sources -o build/server

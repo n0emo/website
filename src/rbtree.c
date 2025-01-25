@@ -108,6 +108,8 @@ RBTreeNode *rbtree_insert(RBTree *tree, const void *element) {
 }
 
 void *rbtree_remove(RBTree *tree, const void *element) {
+    (void) tree;
+    (void) element;
     assert(0 && "btree_remove is not implemented");
 }
 

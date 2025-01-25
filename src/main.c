@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 
-#include "http.h"
+#include "http/http.h"
 #include "web.h"
 #include "log.h"
 
@@ -21,7 +21,12 @@ int main() {
         }
     }
 
-    if (!start_server(port, &handle_request)) {
+    HttpServer server;
+    http_server_init(&server, &handle_request, (HttpServerSettings) {
+        .port = port,
+    });
+
+    if (!http_server_start(&server)) {
         log_error("Error starting server: %s", strerror(errno));
         return 1;
     }
