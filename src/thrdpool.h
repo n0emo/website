@@ -3,7 +3,8 @@
 
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <threads.h>
+
+#include <pthread.h>
 
 typedef int (JobExecutor)(void *arg);
 
@@ -17,8 +18,8 @@ typedef struct ThreadPoolQueue {
     ThreadPoolJob *first;
     ThreadPoolJob *last;
     atomic_size_t count;
-    mtx_t mutex;
-    cnd_t not_empty;
+    pthread_mutex_t mutex;
+    pthread_cond_t not_empty;
     atomic_bool about_to_destroy;
 } ThreadPoolQueue;
 
@@ -29,7 +30,7 @@ ThreadPoolJob queue_pop(ThreadPoolQueue *queue, bool *ok);
 
 typedef struct ThreadPool {
     ThreadPoolQueue queue;
-    thrd_t *threads;
+    pthread_t *threads;
     size_t thread_count;
     atomic_size_t threads_alive;
     atomic_bool cancel;
