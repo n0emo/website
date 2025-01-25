@@ -57,7 +57,7 @@ bool http_response_write(HttpResponse *response, int fd) {
             if (body_fd < 0) return false;
 
 #ifdef __APPLE__
-            int ret = sendfile(body_fd, fd, 0, sf.size, NULL, 0);
+            int ret = sendfile(body_fd, fd, 0, &sf.size, NULL, 0);
 #else
             int ret = sendfile(fd, body_fd, NULL, sf.size);
 #endif
