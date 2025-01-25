@@ -2,4 +2,4 @@
 
 set -xe
 
-watchexec -r -w src -- "./build.sh && ./build/server"
+watchexec -r -w src -- "./build_debug.sh && ./build/server"

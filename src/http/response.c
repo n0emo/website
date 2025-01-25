@@ -57,11 +57,13 @@ bool http_response_write(HttpResponse *response, int fd) {
             if (body_fd < 0) return false;
 
 #ifdef __APPLE__
-            int ret = sendfile(body_fd, fd, 0, &sf.size, NULL, 0);
+            off_t offset = (off_t) sf.size;
+            int ret = sendfile(body_fd, fd, 0, &offset, NULL, 0);
+            if (close(fd) < 0 || ret != 0) return false;
 #else
             int ret = sendfile(fd, body_fd, NULL, sf.size);
-#endif
             if (close(fd) < 0 || ret != (ssize_t) sf.size) return false;
+#endif
         };
       break;
     }

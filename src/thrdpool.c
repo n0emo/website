@@ -83,7 +83,7 @@ void *thread_func(void *arg) {
         int res = job.executor(job.arg);
 
         if (res != 0) {
-            log_error("Job returned status %d (thread %lu)", res, current_thrd);
+            log_error("Job returned status %d (thread %llu)", res, (uint64_t) current_thrd);
         }
     }
 
@@ -94,7 +94,7 @@ void *thread_func(void *arg) {
 void thrdpool_init(ThreadPool *pool, size_t thread_count) {
     queue_init(&pool->queue);
     pool->thread_count = thread_count;
-    pool->threads = malloc(sizeof(*pool->threads) * thread_count);
+    pool->threads = malloc(sizeof(pthread_t) * thread_count);
     pool->threads_alive = 0;
     pool->cancel = false;
     for (size_t i = 0; i < thread_count; i++) {
