@@ -1,7 +1,9 @@
 #!/bin/sh
 
-cflags="-Wall -Wextra -Isrc"
+set -xe
+
+cflags="-Wall -Wextra -Isrc -O2"
 sources=$(find src -name "*.c")
 
 mkdir -p build
-clang $cflags -DLOG_WITH_FILE $sources -o build/server
+clang $cflags $sources -o ./build/server
