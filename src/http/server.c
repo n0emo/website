@@ -122,14 +122,14 @@ int handle_connection(void *arg) {
     bool result = true;
     HttpRequest request = {0};
     request.alloc = new_arena_allocator(&request.arena);
-    http_headermap_init(&request.headers, &request, &request.arena);
+    http_headermap_init(&request.headers, request.alloc);
     request.body.alloc = &request.alloc;
     request.sd = data->connfd;
 
     HttpResponse response = {0};
     response.body.arena = &request.arena;
     response.body.alloc = &request.alloc;
-    http_headermap_init(&response.headers, &response, &request.arena);
+    http_headermap_init(&response.headers, request.alloc);
     response.sd = data->connfd;
 
     try(http_request_parse(&request, data->connfd));

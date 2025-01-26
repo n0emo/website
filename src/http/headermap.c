@@ -1,14 +1,39 @@
 #include "http/headermap.h"
+#include "utils.h"
+#include "log.h"
 
-int header_cmp(const void *a, const void *b, void *user_data);
+hashfunc_t header_hash;
+hashmap_equals_t header_equals;
 
-void http_headermap_init(HttpHeaderMap *map, void *user_data, Arena *arena) {
-    map->tree = rbtree_new(sizeof(HttpHeader), header_cmp, user_data);
-    map->tree.alloc = new_arena_allocator(arena);
+void http_headermap_init(HttpHeaderMap *map, Allocator alloc) {
+    map->entries = (HttpHeaderMapEntries) {0};
+    map->alloc = alloc;
+    // TODO
+    hashmap_init(&map->indices, (void *) map, &header_hash, &header_equals, sizeof(StringView), sizeof(size_t));
 }
 
 void http_headermap_insert(HttpHeaderMap *map, HttpHeader header) {
-    rbtree_insert(&map->tree, &header);
+    void *value = hashmap_get(&map->indices, &header.key);
+    if (value == NULL) {
+        HttpHeaderMapEntry entry = {
+            .header = header,
+            .next = NULL,
+        };
+        ARRAY_APPEND(&map->entries, entry, &map->alloc);
+        size_t index = map->entries.count - 1;
+        hashmap_insert(&map->indices, &header.key, &index);
+    } else {
+        size_t index = * (size_t *) value;
+        HttpHeaderMapEntry *entry = &map->entries.items[index];
+        while (entry->next != NULL) {
+            entry = entry->next;
+        }
+        entry->next = mem_alloc(&map->alloc, sizeof(HttpHeaderMapEntry));
+        *entry->next = (HttpHeaderMapEntry) {
+            .header = header,
+            .next = NULL
+        };
+    }
 }
 
 void http_headermap_insert_cstrs(HttpHeaderMap *map, const char *key, const char *value) {
@@ -20,10 +45,17 @@ void http_headermap_insert_cstrs(HttpHeaderMap *map, const char *key, const char
     http_headermap_insert(map, header);
 }
 
-int header_cmp(const void *a, const void *b, void *user_data) {
+uint64_t header_hash(const void *key, void *user_data) {
     (void) user_data;
-    const HttpHeader *first = (const HttpHeader *) a;
-    const HttpHeader *second = (const HttpHeader *) b;
-    return sv_cmp(first->key, second->key);
+    StringView k = * (StringView *) key;
+    // TODO: hash function
+    return k.count;
 }
 
+bool header_equals(const void *a, const void *b, void *user_data) {
+    (void) user_data;
+    StringView first = * (StringView *) a;
+    StringView second = * (StringView *) b;
+    // TODO: case insensitive
+    return sv_cmp(first, second) == 0;
+}

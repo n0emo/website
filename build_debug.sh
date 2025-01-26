@@ -2,7 +2,7 @@
 
 set -xe
 
-cflags="-Wall -Wextra -Isrc -g"
+cflags="-Wall -Wextra -Isrc -g -fsanitize=undefined -fsanitize=address"
 sources=$(find src -name "*.c")
 
 mkdir -p build

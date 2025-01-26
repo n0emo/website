@@ -21,7 +21,21 @@ bool http_response_write(HttpResponse *response, int fd) {
         return false;
     }
 
-    rbtree_iterate_ascending(&response->headers.tree, response_write_rbtree_iter);
+    const HttpHeaderMapEntries *entries = &response->headers.entries;
+    for (size_t i = 0; i < entries->count; i++) {
+        const HttpHeader *h = (const HttpHeader *) &entries->items[i].header;
+
+        int ret = dprintf(
+            response->sd,
+            SV_FMT ": " SV_FMT "\r\n",
+            SV_ARG(h->key), SV_ARG(h->value)
+        );
+
+        if (ret < 0) {
+            return false;
+        }
+
+    }
 
     size_t content_length = 0;
     switch (response->body.kind) {
@@ -71,17 +85,3 @@ bool http_response_write(HttpResponse *response, int fd) {
     return true;
 }
 
-void response_write_rbtree_iter(const void *element, void *user_data) {
-    const HttpHeader *h= (const HttpHeader *) element;
-    HttpResponse *response = (HttpResponse *) user_data;
-
-    int ret = dprintf(
-        response->sd,
-        SV_FMT ": " SV_FMT "\r\n",
-        SV_ARG(h->key), SV_ARG(h->value)
-    );
-
-    if (ret < 0) {
-        log_warn("Error printing response header: %s", strerror(errno));
-    }
-}
