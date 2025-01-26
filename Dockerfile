@@ -1,16 +1,16 @@
 # Stage 1: Build
-FROM silkeh/clang:latest AS builder
+FROM ubuntu:latest AS builder
 
 WORKDIR /
 
 COPY ./src/ ./src/
-COPY ./build.sh ./build.sh
+COPY ./justfile justfile
 
-RUN chmod +x ./build.sh
-RUN ./build.sh
+RUN apt update && apt install clang just -y
+RUN just profile=release build
 
 # Stage 2: Final image
-FROM debian:latest
+FROM ubuntu:latest
 
 WORKDIR /app
 

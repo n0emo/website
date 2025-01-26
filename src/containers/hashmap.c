@@ -1,6 +1,6 @@
 #include "hashmap.h"
 
-#include <strings.h>
+#include <string.h>
 
 #define HASHMAP_INITIAL_BUCKETS 16
 
