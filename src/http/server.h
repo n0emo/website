@@ -8,8 +8,6 @@
 #include "http/response.h"
 #include "thrdpool.h"
 
-typedef bool http_request_handler_t(HttpRequest *request, HttpResponse *response);
-
 typedef struct HttpServerSettings {
     uint16_t port;
 } HttpServerSettings;

@@ -60,7 +60,7 @@ void *hashmap_get(HashMap *map, const void *key) {
 
 bool hashmap_pop(HashMap *map, const void *key, void **found_key, void **value) {
     HashMapBucket *bucket = get_bucket_for_key(map, key);
-    if (bucket == NULL) false;
+    if (bucket == NULL) return false;
     bucket->initialized = false;
     if (found_key != NULL) *found_key = bucket->data;
     if (value != NULL) *value = bucket->data + map->key_size;

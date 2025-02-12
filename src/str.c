@@ -1,6 +1,7 @@
 #include "str.h"
 
 #include "utils.h"
+#include <string.h>
 
 bool str_contains(const char *s, char c) {
     while (*s != '\0') {
@@ -182,4 +183,12 @@ StringView sv_dup(Allocator *alloc, StringView sv) {
         .items = mem_memdup(alloc, sv.items, sv.count),
         .count = sv.count,
     };
+}
+
+size_t sv_count_char(StringView sv, char c) {
+    size_t count = 0;
+    for (size_t i = 0; i < sv.count; i++) {
+        if (sv.items[i] == c) count++;
+    }
+    return count;
 }

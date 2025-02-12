@@ -24,7 +24,7 @@ default: build
 
 build:
     mkdir -p build
-    {{ cc }} -o ./build/server {{ cflags }} src/server.c
+    {{ cc }} -std=gnu17 -o ./build/server {{ cflags }} src/server.c
 
 test IMAGE:
     {{ docker }} build -t n0emo-website .
