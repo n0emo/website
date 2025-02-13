@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "alloc.h"
 #include "log.h"
 #include "utils.h"
 
@@ -20,12 +21,12 @@ bool init_socket(HttpServer *server);
 bool accept_connection(HttpServer *server);
 int handle_connection(void *arg);
 
-bool http_server_init(HttpServer *server, http_request_handler_t *handler, HttpServerSettings settings) {
+bool http_server_init(HttpServer *server, HttpRouter router, HttpServerSettings settings) {
     bool result;
 
-    server->handler = handler;
+    server->router = router;
     server->settings = settings;
-    thrdpool_init(&server->thread_pool, 100);
+    thrdpool_init(&server->thread_pool, 2);
     try(init_socket(server));
 
     return true;
@@ -121,26 +122,25 @@ int handle_connection(void *arg) {
 
     bool result = true;
     HttpRequest request = {0};
-    request.alloc = new_arena_allocator(&request.arena);
-    http_headermap_init(&request.headers, request.alloc);
-    request.body.alloc = &request.alloc;
-    request.sd = data->connfd;
+    Arena arena = {0};
+    Allocator alloc = new_arena_allocator(&arena);
+    http_request_init(&request, alloc);
 
     HttpResponse response = {0};
-    response.body.arena = &request.arena;
-    response.body.alloc = &request.alloc;
-    http_headermap_init(&response.headers, request.alloc);
+    response.body.alloc = request.alloc;
+    http_headermap_init(&response.headers, alloc);
     response.sd = data->connfd;
 
     try(http_request_parse(&request, data->connfd));
     http_headermap_insert_cstrs(&response.headers, "Connection", "close");
     http_headermap_insert_cstrs(&response.headers, "X-Frame-Options", "DENY");
     http_headermap_insert_cstrs(&response.headers, "Content-Security-Policy", "default-src 'self';");
-    try(data->server->handler(&request, &response));
+    try(http_router_handle(&data->server->router, &request, &response));
+
     try(http_response_write(&response, data->connfd));
 
 defer:
-    arena_free_arena(&request.arena);
+    arena_free_arena(&arena);
     close(data->connfd);
     free(data);
     return !result;

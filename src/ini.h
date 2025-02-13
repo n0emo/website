@@ -27,7 +27,7 @@ typedef struct {
 } IniSections;
 
 typedef struct {
-    Allocator *alloc;
+    Allocator alloc;
     IniSections sections;
 } Ini;
 

@@ -1,8 +1,9 @@
 #ifndef HTTP_COMMON_H_
 #define HTTP_COMMON_H_
 
-#include "utils.h"
 #include <stdbool.h>
+
+#include "str.h"
 
 typedef enum {
     HTTP_OK = 200,

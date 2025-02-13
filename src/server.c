@@ -1,10 +1,13 @@
 #include "containers/hashmap.c"
+
 #include "http/common.c"
 #include "http/fs.c"
 #include "http/headermap.c"
 #include "http/request.c"
 #include "http/response.c"
+#include "http/router.c"
 #include "http/server.c"
+
 #include "alloc.c"
 #include "html.c"
 #include "ini.c"

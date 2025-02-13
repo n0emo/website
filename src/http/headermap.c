@@ -1,15 +1,21 @@
 #include "http/headermap.h"
 #include "utils.h"
-#include "log.h"
 
 hashfunc_t header_hash;
 hashmap_equals_t header_equals;
 
 void http_headermap_init(HttpHeaderMap *map, Allocator alloc) {
+    hashmap_init(
+        &map->indices,
+        (void *) map,
+        hashmap_sv_hash,
+        hashmap_sv_equals,
+        sizeof(StringView),
+        sizeof(size_t)
+    );
+    map->indices.alloc = alloc;
     map->entries = (HttpHeaderMapEntries) {0};
     map->alloc = alloc;
-    // TODO
-    hashmap_init(&map->indices, (void *) map, &header_hash, &header_equals, sizeof(StringView), sizeof(size_t));
 }
 
 void http_headermap_insert(HttpHeaderMap *map, HttpHeader header) {
@@ -19,7 +25,7 @@ void http_headermap_insert(HttpHeaderMap *map, HttpHeader header) {
             .header = header,
             .next = NULL,
         };
-        ARRAY_APPEND(&map->entries, entry, &map->alloc);
+        ARRAY_APPEND(&map->entries, entry, map->alloc);
         size_t index = map->entries.count - 1;
         hashmap_insert(&map->indices, &header.key, &index);
     } else {
@@ -28,7 +34,7 @@ void http_headermap_insert(HttpHeaderMap *map, HttpHeader header) {
         while (entry->next != NULL) {
             entry = entry->next;
         }
-        entry->next = mem_alloc(&map->alloc, sizeof(HttpHeaderMapEntry));
+        entry->next = mem_alloc(map->alloc, sizeof(HttpHeaderMapEntry));
         *entry->next = (HttpHeaderMapEntry) {
             .header = header,
             .next = NULL

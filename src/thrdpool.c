@@ -83,7 +83,7 @@ void *thread_func(void *arg) {
         int res = job.executor(job.arg);
 
         if (res != 0) {
-            log_error("Job returned status %d (thread %llu)", res, (uint64_t) current_thrd);
+            log_error("Job returned status %d (thread %lu)", res, (uint64_t) current_thrd);
         }
     }
 

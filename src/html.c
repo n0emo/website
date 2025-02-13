@@ -7,7 +7,7 @@ Html html_begin() {
     Html html = {0};
     html.arena = (Arena) {0};
     html.alloc = new_arena_allocator(&html.arena);
-    html.sb.alloc = &html.alloc;
+    html.sb.alloc = html.alloc;
     sb_append_cstr(&html.sb, "<!DOCTYPE html>\n");
     html_tag_begin(&html, "html");
     return html;
@@ -19,7 +19,7 @@ void html_end(Html *html) {
 }
 
 void html_push_attribute(Html *html, Attribute attribute) {
-    ARRAY_APPEND(&html->attributes, attribute, &html->alloc);
+    ARRAY_APPEND(&html->attributes, attribute, html->alloc);
 }
 
 void html_push_attribute_cstrs(Html *html, const char *name, const char *value) {
@@ -36,7 +36,7 @@ void html_pop_attributes(Html *html, size_t count) {
 }
 
 void html_push_class(Html *html, StringView cls) {
-    ARRAY_APPEND(&html->classes, cls, &html->alloc);
+    ARRAY_APPEND(&html->classes, cls, html->alloc);
 }
 
 void html_push_class_cstr(Html *html, const char *cls) {

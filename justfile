@@ -13,9 +13,9 @@ docker := if which("docker") != "" {
 }
 
 cflags := if profile == "debug" {
-    "-Wall -Wextra -Isrc -g -fsanitize=undefined -fsanitize=address"
+    "-Wall -Wextra -Isrc -Wno-unused-parameter -DLOG_WITH_FILE -g -Wunaligned-access -fsanitize=undefined -fsanitize=address"
 } else if profile == "release" {
-    "-Wall -Wextra -Isrc -O2"
+    "-Wall -Wextra -Isrc -Wno-unused-parameter -O2"
 } else {
     ""
 }
@@ -24,7 +24,11 @@ default: build
 
 build:
     mkdir -p build
-    {{ cc }} -o ./build/server {{ cflags }} src/server.c
+    {{ cc }} -std=gnu17 -o ./build/server {{ cflags }} src/server.c
+
+generate-comile-commands:
+    mkdir -p build
+    bear -- {{ cc }} -std=gnu17 -o ./build/server {{ cflags }} `find src/ -type f -name "*.c" -not -path "src/server.c" -print0 | xargs -0`
 
 test IMAGE:
     {{ docker }} build -t n0emo-website .
@@ -34,6 +38,9 @@ serve: build
 
 watch:
     watchexec -r -w src -- "just profile={{ profile }} serve"
+
+valgrind: build
+    valgrind ./build/server
 
 deploy:
     fly deploy

@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "html.h"
+#include "http/http.h"
 #include "log.h"
 #include "utils.h"
 #include "ini.h"
@@ -24,10 +25,10 @@ typedef struct {
 void response_setup_html(HttpResponse *response);
 void render_index(StringBuilder *sb);
 void render_blogs(StringBuilder *sb, BlogList list);
-bool get_blogs(Allocator *alloc, BlogList *list);
+bool get_blogs(Allocator alloc, BlogList *list);
 void render_blog(StringBuilder *sb, BlogDescription desc, StringView text);
-bool get_blog(Allocator *alloc, StringView dir, BlogDescription *desc);
-bool get_blog_text(Allocator *alloc, StringView dir, StringBuilder *blog_text);
+bool get_blog(Allocator alloc, StringView dir, BlogDescription *desc);
+bool get_blog_text(Allocator alloc, StringView dir, StringBuilder *blog_text);
 void render_music(StringBuilder *sb);
 void page_base_begin(Html *html, StringView title);
 void page_base_end(Html *html);
@@ -39,48 +40,68 @@ void link_sv(Html *html, StringView text, StringView destination);
 
 // TODO: parse query
 // TODO: handle POST with body
-bool handle_request(HttpRequest *request, HttpResponse *response) {
-    if (sv_eq_cstr(request->path, "/")) {
+bool handle_root(HttpRequest *request, HttpResponse *response, void *user_data);
+bool handle_blogs(HttpRequest *request, HttpResponse *response, void *user_data);
+bool handle_blog_by_name(HttpRequest *request, HttpResponse *response, void *user_data);
+bool handle_music(HttpRequest *request, HttpResponse *response, void *user_data);
+bool handle_assets(HttpRequest *request, HttpResponse *response, void *user_data);
+
+void web_setup_handlers(HttpRouter *router) {
+    http_route(router, "/", handle_root);
+    http_route(router, "/blogs", handle_blogs);
+    http_route(router, "/blogs/:blog", handle_blog_by_name);
+    http_route(router, "/music", handle_music);
+    http_route_fallback(router, handle_assets, NULL);
+}
+
+bool handle_root(HttpRequest *request, HttpResponse *response, void *user_data) {
+    response_setup_html(response);
+    render_index(&response->body.as.bytes);
+    return true;
+}
+
+bool handle_blogs(HttpRequest *request, HttpResponse *response, void *user_data) {
+    BlogList list = {0};
+    if (!get_blogs(request->alloc, &list)) {
+        response->status = HTTP_INTERNAL_SERVER_ERROR;
+    } else {
         response_setup_html(response);
-        render_index(&response->body.as.bytes);
-    } else if (sv_eq_cstr(request->path, "/blogs")) {
-        BlogList list = {0};
-        if (!get_blogs(&request->alloc, &list)) {
-            response->status = HTTP_INTERNAL_SERVER_ERROR;
-        } else {
-            response_setup_html(response);
-            render_blogs(&response->body.as.bytes, list);
-        }
-    } else if (sv_starts_with(request->path, cstr_to_sv("/blogs/"))) {
-        StringView dir = sv_slice_from(request->path, strlen("/blogs/"));
-        BlogDescription blog_desc = {0};
-        StringBuilder blog_text = { .alloc = &request->alloc, 0 };
-        if (
-            !get_blog(&request->alloc, dir, &blog_desc) ||
-            !get_blog_text(&request->alloc, dir, &blog_text)) {
-            response->status = HTTP_INTERNAL_SERVER_ERROR;
-        } else {
-            response_setup_html(response);
-            render_blog(&response->body.as.bytes, blog_desc, sb_to_sv(blog_text));
-        }
-    } else if (sv_eq_cstr(request->path, "/music")) {
+        render_blogs(&response->body.as.bytes, list);
+    }
+    return true;
+}
+
+bool handle_blog_by_name(HttpRequest *request, HttpResponse *response, void *user_data) {
+    StringView *dir = http_path_get(&request->path_params, cstr_to_sv("blog"));
+    if (dir == NULL) {
+        response->status = HTTP_NOT_FOUND;
+        return true;
+    }
+    BlogDescription blog_desc = {0};
+    StringBuilder blog_text = { .alloc = request->alloc, 0 };
+    if (
+        !get_blog(request->alloc, *dir, &blog_desc) ||
+        !get_blog_text(request->alloc, *dir, &blog_text)) {
+        response->status = HTTP_INTERNAL_SERVER_ERROR;
+    } else {
         response_setup_html(response);
-        render_music(&response->body.as.bytes);
-    } else if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
+        render_blog(&response->body.as.bytes, blog_desc, sb_to_sv(blog_text));
+    }
+    return true;
+}
+
+bool handle_music(HttpRequest *request, HttpResponse *response, void *user_data) {
+    response_setup_html(response);
+    render_music(&response->body.as.bytes);
+    return true;
+}
+
+bool handle_assets(HttpRequest *request, HttpResponse *response, void *user_data) {
+    if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
         response->status = HTTP_OK;
     } else {
         response->status = HTTP_NOT_FOUND;
     }
-
-    log_debug(
-        "%s " SV_FMT ": %d %s",
-        http_method_str(request->method),
-        SV_ARG(request->path),
-        // TODO
-        response->status,
-        http_status_desc(response->status)
-    );
-
     return true;
 }
 
@@ -120,7 +141,7 @@ void render_blogs(StringBuilder *sb, BlogList list) {
 
         html_h2_begin(&html);
         const char *blog_destination = mem_sprintf(
-            &html.alloc,
+            html.alloc,
             "/blogs/" SV_FMT,
             SV_ARG(d.dir)
         );
@@ -128,7 +149,7 @@ void render_blogs(StringBuilder *sb, BlogList list) {
         html_h2_end(&html);
 
         const char *blog_desc = mem_sprintf(
-            &html.alloc,
+            html.alloc,
             SV_FMT " - by " SV_FMT,
             SV_ARG(d.desc), SV_ARG(d.author)
         );
@@ -144,7 +165,7 @@ void render_blogs(StringBuilder *sb, BlogList list) {
     html_render_to_sb_and_free(&html, sb);
 }
 
-bool get_blogs(Allocator *alloc, BlogList *list) {
+bool get_blogs(Allocator alloc, BlogList *list) {
     bool result = true;
     DIR *dir;
     struct dirent *dirent;
@@ -220,7 +241,7 @@ void render_blog(StringBuilder *sb, BlogDescription desc, StringView text) {
     html_render_to_sb_and_free(&html, sb);
 }
 
-bool get_blog(Allocator *alloc, StringView dir, BlogDescription *blog_desc) {
+bool get_blog(Allocator alloc, StringView dir, BlogDescription *blog_desc) {
     StringBuilder sb = { .alloc = alloc, 0 };
     const char *path = mem_sprintf(alloc, "blogs/" SV_FMT "/metadata.ini", SV_ARG(dir));
 
@@ -251,7 +272,7 @@ bool get_blog(Allocator *alloc, StringView dir, BlogDescription *blog_desc) {
     return true;
 }
 
-bool get_blog_text(Allocator *alloc, StringView dir, StringBuilder *blog_text) {
+bool get_blog_text(Allocator alloc, StringView dir, StringBuilder *blog_text) {
     const char *path = mem_sprintf(alloc, "blogs/" SV_FMT "/en.md", SV_ARG(dir));
     return read_file_to_sb(path, blog_text);
 }

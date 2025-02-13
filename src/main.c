@@ -21,8 +21,13 @@ int main() {
         }
     }
 
+    Arena arena = {0};
+    HttpRouter router = {0};
+    http_router_init(&router, NULL, new_arena_allocator(&arena));
+    web_setup_handlers(&router);
+
     HttpServer server;
-    http_server_init(&server, &handle_request, (HttpServerSettings) {
+    http_server_init(&server, router, (HttpServerSettings) {
         .port = port,
     });
 

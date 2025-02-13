@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "str.h"
+
 #define HASHMAP_INITIAL_BUCKETS 16
 
 size_t round_to(size_t value, size_t roundTo);
@@ -60,7 +62,7 @@ void *hashmap_get(HashMap *map, const void *key) {
 
 bool hashmap_pop(HashMap *map, const void *key, void **found_key, void **value) {
     HashMapBucket *bucket = get_bucket_for_key(map, key);
-    if (bucket == NULL) false;
+    if (bucket == NULL) return false;
     bucket->initialized = false;
     if (found_key != NULL) *found_key = bucket->data;
     if (value != NULL) *value = bucket->data + map->key_size;
@@ -107,7 +109,7 @@ HashMapBucket *get_bucket_for_key(HashMap *map, const void *key) {
 void alloc_buckets(HashMap *map, size_t count) {
     map->bucket_count = count;
     size_t size = bucket_size(map);
-    map->buckets =  mem_alloc(&map->alloc, size * count);
+    map->buckets = mem_alloc(map->alloc, size * count);
     bzero(map->buckets, size * count);
 }
 
@@ -119,17 +121,35 @@ void hashmap_expand(HashMap *map) {
     map->element_count = 0;
     for (size_t i = 0; i < old_count; i++) {
         HashMapBucket *bucket = (HashMapBucket *) ((char *) old_buckets + size * i);
-        hashmap_insert(map, bucket->data, bucket->data + map->key_size);
+        if (bucket->initialized) {
+            hashmap_insert(map, bucket->data, bucket->data + map->key_size);
+        }
     }
-    mem_free(&map->alloc, old_buckets);
+    mem_free(map->alloc, old_buckets);
 }
 
 size_t bucket_size(HashMap *map) {
     return round_to(sizeof(HashMapBucket) + map->key_size + map->value_size, 8);
-
 }
 
 bool map_equals(HashMap *map, const void *a, const void *b) {
     return (map->equals != NULL && map->equals(a, b, map->user_data))
         || memcmp(a, b, map->key_size) == 0;
+}
+
+// djb2 hash algorithm
+uint64_t hashmap_sv_hash(const void *value, void *user_data) {
+    (void) user_data;
+    const StringView *sv = (const StringView *) value;
+    uint64_t hash = 5381;
+    for (size_t i = 0; i < sv->count; i++){
+        hash = ((hash << 5) + hash) + sv->items[i];
+    }
+    return hash;
+}
+
+bool hashmap_sv_equals(const void *a, const void *b, void *user_data) {
+    const StringView *sva = (const StringView *) a;
+    const StringView *svb = (const StringView *) b;
+    return sv_eq_sv(*sva, *svb);
 }

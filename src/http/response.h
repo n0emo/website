@@ -20,8 +20,7 @@ typedef struct {
 } ResponseSendFile;
 
 typedef struct {
-    Arena *arena;
-    Allocator *alloc;
+    Allocator alloc;
     ResponseBodyKind kind;
     union {
         StringBuilder bytes;
