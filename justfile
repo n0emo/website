@@ -1,16 +1,7 @@
-set unstable
 
 profile := "debug"
 
-cc := require("clang")
-
-docker := if which("docker") != "" {
-    "docker"
-} else if which("podman") != "" {
-    "podman"
-} else {
-    "docker"
-}
+cc := "clang"
 
 cflags := if profile == "debug" {
     "-Wall -Wextra -Isrc -Wno-unused-parameter -DLOG_WITH_FILE -g -Wunaligned-access -fsanitize=undefined -fsanitize=address"
@@ -31,7 +22,7 @@ generate-comile-commands:
     bear -- {{ cc }} -std=gnu17 -o ./build/server {{ cflags }} `find src/ -type f -name "*.c" -not -path "src/server.c" -print0 | xargs -0`
 
 test IMAGE:
-    {{ docker }} build -t n0emo-website .
+    docker build -t n0emo-website .
 
 serve: build
     ./build/server
