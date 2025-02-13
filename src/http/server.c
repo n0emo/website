@@ -26,7 +26,7 @@ bool http_server_init(HttpServer *server, HttpRouter router, HttpServerSettings 
 
     server->router = router;
     server->settings = settings;
-    thrdpool_init(&server->thread_pool, 2);
+    thrdpool_init(&server->thread_pool, 100);
     try(init_socket(server));
 
     return true;
