@@ -6,13 +6,44 @@
 
 #include "http/headermap.h"
 
-#define BUF_CAP 8192
-
 bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body);
 void request_trim_cr(StringView *sv);
 
+void http_path_init(HttpPathParams *params, Allocator alloc) {
+    hashmap_init(
+        &params->map,
+        NULL,
+        hashmap_sv_hash,
+        hashmap_sv_equals,
+        sizeof(StringView),
+        sizeof(StringView)
+    );
+    params->map.alloc = alloc;
+    params->is_set = false;
+}
+
+void http_path_set(HttpPathParams *params, StringView key, StringView value) {
+    hashmap_insert(&params->map, &key, &value);
+}
+
+StringView *http_path_get(HttpPathParams *params, StringView key) {
+    return hashmap_get(&params->map, &key);
+}
+
+#define BUF_CAP 8192
+
+
+bool http_request_init(HttpRequest *request, Allocator alloc) {
+    bzero(request, sizeof(*request));
+    request->alloc = alloc;
+    request->body.alloc = alloc;
+    http_headermap_init(&request->headers, alloc);
+    http_path_init(&request->path_params, alloc);
+    return true;
+}
+
 bool http_request_parse(HttpRequest *request, int fd) {
-    StringBuilder header = { .alloc = &request->alloc, 0 };
+    StringBuilder header = { .alloc = request->alloc, 0 };
 
     if (!read_request_header_lines(fd, &header, &request->body)) return false;
     StringView sv = {
@@ -33,8 +64,8 @@ bool http_request_parse(HttpRequest *request, int fd) {
         return false;
     }
 
-    request->resource_path = sv_dup(&request->alloc, sv_chop_by(&status_line, ' '));
-    request->version = sv_dup(&request->alloc, sv_chop_by(&status_line, '\n'));
+    request->resource_path = sv_dup(request->alloc, sv_chop_by(&status_line, ' '));
+    request->version = sv_dup(request->alloc, sv_chop_by(&status_line, '\n'));
 
     StringView header_line;
     while (true) {
@@ -46,13 +77,13 @@ bool http_request_parse(HttpRequest *request, int fd) {
 
         request_trim_cr(&header_line);
 
-        StringView key = sv_dup(&request->alloc, sv_chop_by(&header_line, ':'));
-        StringView value = sv_dup(&request->alloc, sv_slice_from(header_line, 1));
+        StringView key = sv_dup(request->alloc, sv_chop_by(&header_line, ':'));
+        StringView value = sv_dup(request->alloc, sv_slice_from(header_line, 1));
         http_headermap_insert(&request->headers, (HttpHeader) { key, value });
     }
 
     StringView resource_path = request->resource_path;
-    StringBuilder sb = { .alloc = &request->alloc, 0 };
+    StringBuilder sb = { .alloc = request->alloc, 0 };
     StringView path = sv_chop_by(&resource_path, '?');
     if (!http_urldecode(path, &sb)) return false;
     request->path = sb_to_sv(sb);

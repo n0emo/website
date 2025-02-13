@@ -2,20 +2,16 @@
 #define HTTP_ROUTER_H_
 
 #include "alloc.h"
-#include "http/request.h"
-#include "http/response.h"
+#include "http/handler.h"
 #include "str.h"
 
 #include <stddef.h>
-
-typedef bool http_request_handler_t(HttpRequest *request, HttpResponse *response);
 
 typedef struct HttpRoute {
     const char *pattern_ptr;
     StringView *pattern;
     size_t pattern_size;
-    http_request_handler_t *handler;
-    void *user_data;
+    HttpRequestHandler handler;
 } HttpRoute;
 
 typedef struct HttpRouter {
@@ -24,20 +20,28 @@ typedef struct HttpRouter {
     HttpRoute *items;
     size_t count;
     size_t capacity;
+    void *user_data;
 
-    http_request_handler_t *fallback;
+    http_request_handle_func_t *fallback;
     void *fallback_data;
 } HttpRouter;
 
-void http_router_init(HttpRouter *router, Allocator alloc);
+void http_router_init(HttpRouter *router, void *user_data, Allocator alloc);
 bool http_router_handle(HttpRouter *router, HttpRequest *request, HttpResponse *response);
-void http_route_sv(HttpRouter *router, StringView path, http_request_handler_t *handler, void *user_data);
-void http_route_cstr(HttpRouter *router, const char *path, http_request_handler_t *handler, void *user_data);
-void http_route_fallback(HttpRouter *router, http_request_handler_t *handler, void *user_data);
+void http_route_sv(HttpRouter *router, StringView path, http_request_handle_func_t *handler);
+void http_route_cstr(HttpRouter *router, const char *path, http_request_handle_func_t *handler);
+void http_route_handler_sv(HttpRouter *router, StringView path, HttpRequestHandler handler);
+void http_route_handler_cstr(HttpRouter *router, const char *path, HttpRequestHandler handler);
+void http_route_fallback(HttpRouter *router, http_request_handle_func_t *handler, void *user_data);
 
-#define http_route(router, path, handler, user_data) _Generic((path), \
-                                                              StringView: http_route_sv, \
-                                                              char *: http_route_cstr \
-                                                    )(router, path, handler, user_data)
+#define http_route(router, path, handler) _Generic((path), \
+    StringView: http_route_sv, \
+    char *: http_route_cstr \
+)(router, path, handler)
+
+#define http_route_handler(router, path, handler) _Generic((path), \
+    StringView: http_route_handler_sv, \
+    char *: http_route_handler_cstr \
+)(router, path, handler)
 
 #endif // HTTP_ROUTER_H_

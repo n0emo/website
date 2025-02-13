@@ -8,14 +8,14 @@
 
 typedef struct Allocator Allocator;
 
-void *mem_alloc(Allocator *allocator, size_t bytes);
-void mem_free(Allocator *allocator, void *ptr);
-void *mem_calloc(Allocator *allocator, size_t count, size_t size);
-void *mem_realloc(Allocator *allocator, void *ptr, size_t bytes);
-char *mem_sprintf(Allocator *allocator, const char *format, ...)
+void *mem_alloc(Allocator allocator, size_t bytes);
+void mem_free(Allocator allocator, void *ptr);
+void *mem_calloc(Allocator allocator, size_t count, size_t size);
+void *mem_realloc(Allocator allocator, void *ptr, size_t bytes);
+char *mem_sprintf(Allocator allocator, const char *format, ...)
     __attribute__((format(printf, 2, 3)));
-void *mem_memdup(Allocator *allocator, const void *mem, size_t size);
-char *mem_strdup(Allocator *allocator, const char *s);
+void *mem_memdup(Allocator allocator, const void *mem, size_t size);
+char *mem_strdup(Allocator allocator, const char *s);
 
 /********************************* Allocator **********************************/
 

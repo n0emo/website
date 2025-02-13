@@ -3,7 +3,7 @@
 
 #include "http/http.h"
 
-bool handle_request(HttpRequest *request, HttpResponse *response);
+void web_setup_handlers(HttpRouter *router);
 
 #endif // WEB_H_
 

@@ -10,7 +10,7 @@ bool str_contains(const char *s, char c);
 typedef struct StringView StringView;
 
 typedef struct {
-    Allocator *alloc;
+    Allocator alloc;
     char *items;
     size_t count;
     size_t capacity;
@@ -46,7 +46,7 @@ StringView sv_trim_left_to_cstr(StringView sv, const char *chars);
 StringView sv_trim_right_to_cstr(StringView sv, const char *chars);
 StringView sv_trim_space(StringView sv);
 StringView sv_chop_by(StringView *sv, char c);
-StringView sv_dup(Allocator *alloc, StringView sv);
+StringView sv_dup(Allocator alloc, StringView sv);
 size_t sv_count_char(StringView sv, char c);
 
 #endif // STRINGVIEW_H_

@@ -1,8 +1,6 @@
 #ifndef LOG_H_
 #define LOG_H_
 
-#include <time.h>
-
 typedef enum {
     LOG_TRACE,
     LOG_DEBUG,

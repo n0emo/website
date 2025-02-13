@@ -4,8 +4,7 @@
 #include <netinet/in.h>
 #include <stdint.h>
 
-#include "http/request.h"
-#include "http/response.h"
+#include "http/router.h"
 #include "thrdpool.h"
 
 typedef struct HttpServerSettings {
@@ -14,13 +13,13 @@ typedef struct HttpServerSettings {
 
 typedef struct HttpServer {
     ThreadPool thread_pool;
+    HttpRouter router;
     int socket;
-    http_request_handler_t *handler;
     HttpServerSettings settings;
     struct sockaddr_in address;
 } HttpServer;
 
-bool http_server_init(HttpServer *server, http_request_handler_t *handler, HttpServerSettings settings);
+bool http_server_init(HttpServer *server, HttpRouter router, HttpServerSettings settings);
 void http_server_destroy(HttpServer *server);
 bool http_server_start(HttpServer *server);
 

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 const char *http_status_desc(HttpStatus status) {
     switch (status) {

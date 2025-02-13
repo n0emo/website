@@ -13,6 +13,7 @@ typedef bool hashmap_iter_t(const void *key, const void *value, void *user_data)
 typedef struct HashMapBucket {
     size_t map_index;
     bool initialized;
+    char _padding[7];
     char data[];
 } HashMapBucket;
 
@@ -33,5 +34,8 @@ void hashmap_insert(HashMap *map, const void *key, const void *value);
 bool hashmap_pop(HashMap *map, const void *key, void **found_key, void **value);
 void *hashmap_get(HashMap *map, const void *key);
 bool hashmap_iterate(HashMap *map, hashmap_iter_t iter);
+
+hashfunc_t hashmap_sv_hash;
+hashmap_equals_t hashmap_sv_equals;
 
 #endif // CONTAINERS_HASHMAP_H_

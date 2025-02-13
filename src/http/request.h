@@ -2,12 +2,22 @@
 #define HTTP_REQUEST_H_
 
 #include "alloc.h"
+#include "containers/hashmap.h"
 #include "http/common.h"
 #include "http/headermap.h"
 #include "utils.h"
 
+typedef struct HttpPathParams {
+    HashMap map;
+    bool is_set;
+} HttpPathParams;
+
+void http_path_init(HttpPathParams *params, Allocator alloc);
+void http_path_set(HttpPathParams *params, StringView key, StringView value);
+StringView *http_path_get(HttpPathParams *params, StringView key);
+void http_path_destroy(HttpPathParams *params);
+
 typedef struct {
-    Arena arena;
     Allocator alloc;
     HttpMethod method;
     StringView resource_path;
@@ -16,9 +26,11 @@ typedef struct {
     StringView query_string;
     HttpHeaderMap headers;
     StringBuilder body;
-    int sd;
+
+    HttpPathParams path_params;
 } HttpRequest;
 
+bool http_request_init(HttpRequest *request, Allocator alloc);
 bool http_request_parse(HttpRequest *request, int fd);
 
 #endif // HTTP_REQUEST_H_
