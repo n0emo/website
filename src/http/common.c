@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,10 +25,10 @@ const char *http_method_str(HttpMethod method) {
 
 bool http_urldecode(StringView sv, StringBuilder *out) {
     static const char *allowed =
-        "!#$&'()*+,/:;=?@[]"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz"
-        "0123456789-._~";
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789-._~"
+        "!#$&'()*+,/:;=?@[]";
 
     while (sv.count > 0) {
         char c = sv.items[0];
@@ -49,4 +50,26 @@ bool http_urldecode(StringView sv, StringBuilder *out) {
     }
 
     return true;
+}
+
+void http_urlencode(StringView sv, StringBuilder *out) {
+    static const char *allowed =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789-._~";
+
+    static const char hex[] = "0123456789ABCDEF";
+
+    while (sv.count > 0) {
+        char c = sv.items[0];
+        if (strchr(allowed, c)) {
+            sb_append_char(out, c);
+        } else {
+            unsigned char u = (unsigned char) c;
+            sb_append_char(out, '%');
+            sb_append_char(out, hex[(u & 0xF0) >> 4]);
+            sb_append_char(out, hex[u & 0x0F]);
+        }
+        sv = sv_slice_from(sv, 1);
+    }
 }

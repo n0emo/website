@@ -104,6 +104,7 @@ bool handle_music(HttpRequest *request, HttpResponse *response, void *user_data)
 }
 
 bool handle_assets(HttpRequest *request, HttpResponse *response, void *user_data) {
+    log_info(SV_FMT, SV_ARG(request->path));
     if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
         response->status = HTTP_OK;
     } else {
@@ -142,12 +143,17 @@ void render_index(StringBuilder *sb) {
 
 void about(Html *html) {
     html_push_class_cstr(html, "section");
+    html_push_class_cstr(html, "technologies");
     html_div_begin(html);
-    html_pop_classes(html, 1);
+    html_pop_classes(html, 2);
 
     html_h1_begin(html);
     html_text_cstr(html, "Albert Shefner");
     html_h1_end(html);
+
+    html_push_class_cstr(html, "content");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
 
     html_p_begin(html);
     html_text_cstr(
@@ -158,22 +164,45 @@ void about(Html *html) {
     );
     html_p_end(html);
 
-    static const char *technologies[] = { "C", "Rust", "C++", "Linux", "Git", "C#", "Python", "WGPU", "egui", "axum", "JavaScript" };
-    html_ul_begin(html);
+    static const char *technologies[] = { "C", "Rust", "Tokio", "C++", "Git", "C#", "Python", "WebGPU", "JavaScript", "Clojure" };
+    html_push_class_cstr(html, "technology-grid");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
     for (size_t i = 0; i < sizeof(technologies) / sizeof(technologies[0]); i++) {
         technology(html, technologies[i]);
     }
-    html_ul_end(html);
+    html_div_end(html);
+
+    html_div_end(html);
 
     html_div_end(html);
 }
 
 void technology(Html *html, const char *name) {
-    html_li_begin(html);
+    html_push_class_cstr(html, "technology-wrap");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
+    html_push_class_cstr(html, "technology");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
+
+    StringBuilder src = { .alloc = html->alloc, 0 };
+    sb_append_cstr(&src, "/logos/");
+    http_urlencode(cstr_to_sv(name), &src);
+    sb_append_cstr(&src, ".svg\0");
+    log_info("Encoded: '%s'", src.items);
+    html_push_attribute_cstrs(html, "src", src.items);
+    html_push_attribute_cstrs(html, "width", "100px");
+    html_push_attribute_cstrs(html, "height", "100px");
+    html_tag_short(html, "img");
+    html_pop_attributes(html, 3);
+
     html_p_begin(html);
     html_text_cstr(html, name);
     html_p_end(html);
-    html_li_end(html);
+
+    html_div_end(html);
+    html_div_end(html);
 }
 
 void project_list(Html *html) {

@@ -1,6 +1,6 @@
 :root {
     --footer-size: 60px;
-    --background-primary: #33334d;
+    --background-primary: #181818;
     --background-secondary: #29293d;
 }
 
@@ -97,7 +97,47 @@ div.index p, div.index a {
     color: #eeeeff;
 }
 
-.index div.section {
+div.section {
     margin-bottom: 3em;
     margin-top: 1em;
 }
+
+div.section.technologies div.content {
+    padding-left: 15%;
+    padding-right: 15%;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+div.section div.technology-grid {
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2%;
+    width: 240%;
+}
+
+div.section div.technology-grid div.technology-wrap {
+    background: linear-gradient(156deg, rgba(106,81,144,1) 0%, rgba(146,54,163,1) 50%, rgba(104,120,213,1) 100%); 
+    padding: 5px;
+    border-radius: 7px;
+    width: 235px;
+    height: 165px;
+}
+
+div.section div.technology-grid div.technology {
+    background: #181818;
+    gap: 10px;
+    align-items: center;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: auto;
+    padding: 10px;
+}
+
+div.section div.technology-grid div.technology img {
+    filter: drop-shadow(0.5px 0.5px 1px #555);
+}
+

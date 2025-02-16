@@ -20,5 +20,6 @@ const char *http_status_desc(HttpStatus status);
 const char *http_method_str(HttpMethod method);
 
 bool http_urldecode(StringView sv, StringBuilder *out);
+void http_urlencode(StringView sv, StringBuilder *out);
 
 #endif // HTTP_COMMON_H_
