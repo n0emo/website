@@ -104,7 +104,6 @@ bool handle_music(HttpRequest *request, HttpResponse *response, void *user_data)
 }
 
 bool handle_assets(HttpRequest *request, HttpResponse *response, void *user_data) {
-    log_info(SV_FMT, SV_ARG(request->path));
     if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
         response->status = HTTP_OK;
     } else {
@@ -190,7 +189,6 @@ void technology(Html *html, const char *name) {
     sb_append_cstr(&src, "/logos/");
     http_urlencode(cstr_to_sv(name), &src);
     sb_append_cstr(&src, ".svg\0");
-    log_info("Encoded: '%s'", src.items);
     html_push_attribute_cstrs(html, "src", src.items);
     html_push_attribute_cstrs(html, "width", "100px");
     html_push_attribute_cstrs(html, "height", "100px");

@@ -67,7 +67,6 @@ footer {
     height: var(--footer-size);
     width: 100%;
     overflow: hidden;
-
 }
 
 footer .footer-text {
@@ -119,7 +118,7 @@ div.section div.technology-grid {
 }
 
 div.section div.technology-grid div.technology-wrap {
-    background: linear-gradient(156deg, rgba(106,81,144,1) 0%, rgba(146,54,163,1) 50%, rgba(104,120,213,1) 100%); 
+    background: linear-gradient(156deg, rgba(106,81,144,1) 0%, rgba(146,54,163,1) 50%, rgba(104,120,213,1) 100%);
     padding: 5px;
     border-radius: 7px;
     width: 235px;
