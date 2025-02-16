@@ -87,7 +87,6 @@ bool http_server_start(HttpServer *server) {
     getnameinfo((struct sockaddr *) &server->address, sizeof(server->address), addr_name, sizeof(addr_name), addr_port, sizeof(addr_port), NI_NUMERICHOST | NI_NUMERICSERV);
     log_info("Serving at %s:%s", addr_name, addr_port);
 
-
     while (true) {
         accept_connection(server);
     }

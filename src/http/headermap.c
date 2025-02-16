@@ -51,17 +51,3 @@ void http_headermap_insert_cstrs(HttpHeaderMap *map, const char *key, const char
     http_headermap_insert(map, header);
 }
 
-uint64_t header_hash(const void *key, void *user_data) {
-    (void) user_data;
-    StringView k = * (StringView *) key;
-    // TODO: hash function
-    return k.count;
-}
-
-bool header_equals(const void *a, const void *b, void *user_data) {
-    (void) user_data;
-    StringView first = * (StringView *) a;
-    StringView second = * (StringView *) b;
-    // TODO: case insensitive
-    return sv_cmp(first, second) == 0;
-}

@@ -24,6 +24,13 @@ typedef struct {
 
 void response_setup_html(HttpResponse *response);
 void render_index(StringBuilder *sb);
+void about(Html *html);
+void technology(Html *html, const char *name);
+void project_list(Html *html);
+void project(Html *html, const char *name, const char *ref);
+void game_list(Html *html);
+void game(Html *html, const char *name, const char *ref);
+void contact_info(Html *html);
 void render_blogs(StringBuilder *sb, BlogList list);
 bool get_blogs(Allocator alloc, BlogList *list);
 void render_blog(StringBuilder *sb, BlogDescription desc, StringView text);
@@ -118,12 +125,121 @@ void render_index(StringBuilder *sb) {
     Html html = html_begin();
     page_base_begin(&html, cstr_to_sv("_n0emo website"));
 
-    html_h1_begin(&html);
-    html_text_cstr(&html, "Welcome to the _n0emo's personal website!");
-    html_h1_end(&html);
+    html_push_class_cstr(&html, "index");
+    html_div_begin(&html);
+    html_pop_classes(&html, 1);
+
+    about(&html);
+    project_list(&html);
+    game_list(&html);
+    contact_info(&html);
+
+    html_div_end(&html);
 
     page_base_end(&html);
     html_render_to_sb_and_free(&html, sb);
+}
+
+void about(Html *html) {
+    html_push_class_cstr(html, "section");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
+
+    html_h1_begin(html);
+    html_text_cstr(html, "Albert Shefner");
+    html_h1_end(html);
+
+    html_p_begin(html);
+    html_text_cstr(
+        html,
+        "Software engineer interested in many areas, such as: low-level, "
+        "system and audio programming; web and game development. Can work "
+        "with any enough documented piece of technology."
+    );
+    html_p_end(html);
+
+    static const char *technologies[] = { "C", "Rust", "C++", "Linux", "Git", "C#", "Python", "WGPU", "egui", "axum", "JavaScript" };
+    html_ul_begin(html);
+    for (size_t i = 0; i < sizeof(technologies) / sizeof(technologies[0]); i++) {
+        technology(html, technologies[i]);
+    }
+    html_ul_end(html);
+
+    html_div_end(html);
+}
+
+void technology(Html *html, const char *name) {
+    html_li_begin(html);
+    html_p_begin(html);
+    html_text_cstr(html, name);
+    html_p_end(html);
+    html_li_end(html);
+}
+
+void project_list(Html *html) {
+    html_push_class_cstr(html, "section");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
+
+    html_h1_begin(html);
+    html_text_cstr(html, "Projects");
+    html_h1_end(html);
+
+    html_ul_begin(html);
+    project(html, "Dynamic compressor CLAP plugin in C", "https://github.com/n0emo/compressor");
+    project(html, "Hyperclip - distortion CLAP/VST plugin", "https://github.com/n0emo/hyperclip");
+    project(html, "NBS - C++ build system", "https://github.com/n0emo/nbs");
+    html_ul_end(html);
+
+    html_div_end(html);
+}
+
+void project(Html *html, const char *name, const char *ref) {
+    html_li_begin(html);
+    html_push_attribute_cstrs(html, "href", ref);
+    html_a_begin(html);
+    html_pop_attributes(html, 1);
+    html_text_cstr(html, name);
+    html_a_end(html);
+    html_li_end(html);
+}
+
+void game_list(Html *html) {
+    html_push_class_cstr(html, "section");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
+
+    html_h1_begin(html);
+    html_text_cstr(html, "Games");
+    html_h1_end(html);
+
+    html_ul_begin(html);
+    html_li_begin(html);
+    html_push_attribute_cstrs(html, "href", "https://n0emo.itch.io/excuse-me-what");
+    html_a_begin(html);
+    html_pop_attributes(html, 1);
+    html_text_cstr(html, "Excuse me, what?");
+    html_a_end(html);
+    html_li_end(html);
+    html_ul_end(html);
+
+    html_div_end(html);
+}
+
+void contact_info(Html *html) {
+    html_push_class_cstr(html, "section");
+    html_div_begin(html);
+    html_pop_classes(html, 1);
+
+    html_h1_begin(html);
+    html_text_cstr(html, "Contact");
+    html_h1_end(html);
+
+    html_p_begin(html);
+    html_text_cstr(html, "email: solaris[at]gmail.com");
+    html_p_end(html);
+
+    html_div_end(html);
 }
 
 // TODO: render markdown to HTML
