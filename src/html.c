@@ -30,11 +30,6 @@ void html_push_attribute_cstrs(Html *html, const char *name, const char *value) 
     html_push_attribute(html, attribute);
 }
 
-void html_pop_attributes(Html *html, size_t count) {
-    assert(html->attributes.count >= count);
-    html->attributes.count -= count;
-}
-
 void html_push_class(Html *html, StringView cls) {
     ARRAY_APPEND(&html->classes, cls, html->alloc);
 }
@@ -44,11 +39,6 @@ void html_push_class_cstr(Html *html, const char *cls) {
     html_push_class(html, sv);
 }
 
-void html_pop_classes(Html *html, size_t count) {
-    assert(html->classes.count >= count);
-    html->classes.count -= count;
-}
-
 void html_tag_short(Html *html, const char *tag) {
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, "<");
@@ -56,6 +46,8 @@ void html_tag_short(Html *html, const char *tag) {
     html_render_class(html);
     html_render_attributes(html);
     sb_append_cstr(&html->sb, "/>\n");
+    html->classes.count = 0;
+    html->attributes.count = 0;
 }
 
 void html_tag_begin(Html *html, const char *tag) {
@@ -66,6 +58,8 @@ void html_tag_begin(Html *html, const char *tag) {
     html_render_attributes(html);
     sb_append_cstr(&html->sb, ">\n");
     html->indentation++;
+    html->classes.count = 0;
+    html->attributes.count = 0;
 }
 
 void html_tag_end(Html *html, const char *tag) {
@@ -89,30 +83,6 @@ void html_text(Html *html, StringView sv) {
     sb_append_cstr(&html->sb, "\n");
 }
 
-void html_head_begin(Html *html) {
-    html_tag_begin(html, "head");
-}
-
-void html_head_end(Html *html) {
-    html_tag_end(html, "head");
-}
-
-void html_body_begin(Html *html) {
-    html_tag_begin(html, "body");
-}
-
-void html_body_end(Html *html) {
-    html_tag_end(html, "body");
-}
-
-void html_footer_begin(Html *html) {
-    html_tag_begin(html, "footer");
-}
-
-void html_footer_end(Html *html) {
-    html_tag_end(html, "footer");
-}
-
 void html_title(Html *html, StringView title) {
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, "<title>");
@@ -120,81 +90,12 @@ void html_title(Html *html, StringView title) {
     sb_append_cstr(&html->sb, "</title>\n");
 }
 
-void html_link(Html *html) {
-    html_tag_short(html, "link");
-}
-
-void html_nav_begin(Html *html) {
-    html_tag_begin(html, "nav");
-}
-
-void html_nav_end(Html *html) {
-    html_tag_end(html, "nav");
-}
-
-void html_div_begin(Html *html) {
-    html_tag_begin(html, "div");
-}
-
-void html_div_end(Html *html) {
-    html_tag_end(html, "div");
-}
-
-void html_p_begin(Html *html) {
-    html_tag_begin(html, "p");
-}
-
-void html_p_end(Html *html) {
-    html_tag_end(html, "p");
-}
-
-void html_a_begin(Html *html) {
-    html_tag_begin(html, "a");
-}
-
-void html_a_end(Html *html) {
-    html_tag_end(html, "a");
-}
-
-void html_h1_begin(Html *html) {
-    html_tag_begin(html, "h1");
-}
-
-void html_h1_end(Html *html) {
-    html_tag_end(html, "h1");
-}
-
-void html_h2_begin(Html *html) {
-    html_tag_begin(html, "h2");
-}
-
-void html_h2_end(Html *html) {
-    html_tag_end(html, "h2");
-}
-
-void html_h3_begin(Html *html) {
-    html_tag_begin(html, "h3");
-}
-
-void html_h3_end(Html *html) {
-    html_tag_end(html, "h3");
-}
-
-void html_ul_begin(Html *html) {
-    html_tag_begin(html, "ul");
-}
-
-void html_ul_end(Html *html) {
-    html_tag_end(html, "ul");
-}
-
-void html_li_begin(Html *html) {
-    html_tag_begin(html, "li");
-}
-
-void html_li_end(Html *html) {
-    html_tag_end(html, "li");
-}
+#define X(tag) \
+    void html_ ## tag ## _begin (Html *html) { html_tag_begin(html, #tag); } \
+    void html_ ## tag ## _end (Html *html) { html_tag_end(html, #tag); } \
+    void html_ ## tag ## _short (Html *html) { html_tag_short(html, #tag); }
+HTML_TAG_LIST
+#undef X
 
 void html_render_to_sb_and_free(Html *html, StringBuilder *sb) {
     sb_append_sb(sb, html->sb);
@@ -206,7 +107,6 @@ void html_append_current_indentation(Html *html) {
         sb_append_cstr(&html->sb, "  ");
     }
 }
-
 
 void html_render_class(Html *html) {
     if (html->classes.count > 0) {

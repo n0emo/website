@@ -1,7 +1,6 @@
 #include "http/router.h"
 
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 
