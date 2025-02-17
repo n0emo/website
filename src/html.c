@@ -83,11 +83,26 @@ void html_text(Html *html, StringView sv) {
     sb_append_cstr(&html->sb, "\n");
 }
 
+void html_hyperlink(Html *html, StringView text, StringView href) {
+    html_push_attribute(html, (Attribute) { .name = cstr_to_sv("href"), .value = href });
+    html_a_begin(html);
+    html_text(html, text);
+    html_a_end(html);
+}
+
+void html_hyperlink_cstr(Html *html, const char *text, const char *href) {
+    html_hyperlink(html, cstr_to_sv(text), cstr_to_sv(href));
+}
+
 void html_title(Html *html, StringView title) {
     html_append_current_indentation(html);
     sb_append_cstr(&html->sb, "<title>");
     sb_append_sv(&html->sb, title);
     sb_append_cstr(&html->sb, "</title>\n");
+}
+
+void html_title_cstr(Html *html, const char *title) {
+    html_title(html, cstr_to_sv(title));
 }
 
 #define X(tag) \

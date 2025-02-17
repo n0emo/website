@@ -42,8 +42,6 @@ void page_base_end(Html *html);
 void navigation_menu(Html *html);
 void footer(Html *html);
 void link_item(Html *html, const char *title, const char *destination);
-void link_cstr(Html *html, const char *title, const char *destination);
-void link_sv(Html *html, StringView text, StringView destination);
 
 // TODO: parse query
 // TODO: handle POST with body
@@ -215,10 +213,7 @@ void project_list(Html *html) {
 
 void project(Html *html, const char *name, const char *ref) {
     html_li_begin(html);
-    html_push_attribute_cstrs(html, "href", ref);
-    html_a_begin(html);
-    html_text_cstr(html, name);
-    html_a_end(html);
+    html_hyperlink_cstr(html, name, ref);
     html_li_end(html);
 }
 
@@ -232,10 +227,7 @@ void game_list(Html *html) {
 
     html_ul_begin(html);
     html_li_begin(html);
-    html_push_attribute_cstrs(html, "href", "https://n0emo.itch.io/excuse-me-what");
-    html_a_begin(html);
-    html_text_cstr(html, "Excuse me, what?");
-    html_a_end(html);
+    html_hyperlink_cstr(html, "Excuse me, what?", "https://n0emo.itch.io/excuse-me-what");
     html_li_end(html);
     html_ul_end(html);
 
@@ -276,7 +268,7 @@ void render_blogs(StringBuilder *sb, BlogList list) {
             "/blogs/" SV_FMT,
             SV_ARG(d.dir)
         );
-        link_sv(&html, d.name, cstr_to_sv(blog_destination));
+        html_hyperlink(&html, d.name, cstr_to_sv(blog_destination));
         html_h2_end(&html);
 
         const char *blog_desc = mem_sprintf(
@@ -358,7 +350,7 @@ void render_blog(StringBuilder *sb, BlogDescription desc, StringView text) {
 
     page_base_begin(&html, desc.name);
 
-    link_cstr(&html, "Back", "/blogs");
+    html_hyperlink_cstr(&html, "Back", "/blogs");
 
     html_h1_begin(&html);
     html_text(&html, desc.name);
@@ -472,39 +464,14 @@ void footer(Html *html) {
     html_p_begin(html);
     html_text_cstr(html, "Ancient technologies are being used to show this page for you.");
     html_p_end(html);
-    html_push_attribute_cstrs(html, "href", "https://github.com/n0emo/website");
-    html_a_begin(html);
-    html_text_cstr(html, "Source code");
-    html_a_end(html);
+    html_hyperlink_cstr(html, "Source code", "https://github.com/n0emo/website");
     html_div_end(html);
     html_footer_end(html);
 }
 
 void link_item(Html *html, const char *title, const char *destination) {
     html_li_begin(html);
-    link_cstr(html, title, destination);
+    html_hyperlink_cstr(html, title, destination);
     html_li_end(html);
-}
-
-void link_cstr(Html *html, const char *title, const char *destination) {
-    html_push_attribute_cstrs(html, "href", destination);
-    html_a_begin(html);
-    html_text_cstr(html, title);
-    html_a_end(html);
-}
-
-void link_sv(Html *html, StringView text, StringView destination) {
-    html_push_attribute(
-        html,
-        (Attribute) { 
-            .name = cstr_to_sv("href"),
-            .value = destination,
-        }
-    );
-
-    html_a_begin(html);
-    html_text(html, text);
-
-    html_a_end(html);
 }
 

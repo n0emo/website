@@ -29,8 +29,25 @@ typedef struct {
     size_t indentation;
 } Html;
 
+void html_tag_begin(Html *html, const char *tag);
+void html_tag_end(Html *html, const char *tag);
+void html_tag_short(Html *html, const char *tag);
+void html_push_attribute(Html *html, Attribute attribute);
+void html_push_attribute_cstrs(Html *html, const char *name, const char *value);
+void html_push_class(Html *html, StringView cls);
+void html_push_class_cstr(Html *html, const char *cls);
+void html_text_cstr(Html *html, const char *text);
+void html_text(Html *html, StringView sv);
+void html_render_to_sb_and_free(Html *html, StringBuilder *sb);
+
 Html html_begin();
 void html_end(Html *html);
+
+void html_image(Html *html, StringView src);
+void html_hyperlink(Html *html, StringView text, StringView href);
+void html_hyperlink_cstr(Html *html, const char *text, const char *href);
+void html_title(Html *html, StringView title);
+void html_title_cstr(Html *html, const char *title);
 
 #define HTML_TAG_LIST \
     X(a) \
@@ -164,18 +181,6 @@ void html_end(Html *html);
     void html_ ## tag ## _short(Html *html);
 HTML_TAG_LIST
 #undef X
-
-void html_push_attribute(Html *html, Attribute attribute);
-void html_push_attribute_cstrs(Html *html, const char *name, const char *value);
-void html_push_class(Html *html, StringView cls);
-void html_push_class_cstr(Html *html, const char *cls);
-void html_tag_short(Html *html, const char *tag);
-void html_tag_begin(Html *html, const char *tag);
-void html_tag_end(Html *html, const char *tag);
-void html_text_cstr(Html *html, const char *text);
-void html_text(Html *html, StringView sv);
-void html_title(Html *html, StringView title);
-void html_render_to_sb_and_free(Html *html, StringBuilder *sb);
 
 void html_append_current_indentation(Html *html);
 void html_render_class(Html *html);
