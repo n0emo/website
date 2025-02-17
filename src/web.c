@@ -22,14 +22,30 @@ typedef struct {
     size_t capacity;
 } BlogList;
 
+typedef struct Project {
+    const char *name;
+    const char *desctiption;
+    const char *source_code;
+    const char *image_src;
+    const char *live_demo_src;
+} Project;
+
+typedef struct Game {
+    const char *name;
+    const char *desctiption;
+    const char *source_code;
+    const char *itch_io;
+    const char *live_demo;
+} Game;
+
 void response_setup_html(HttpResponse *response);
 void render_index(StringBuilder *sb);
 void about(Html *html);
 void technology(Html *html, const char *name);
 void project_list(Html *html);
-void project(Html *html, const char *name, const char *ref);
+void project(Html *html, Project project);
 void game_list(Html *html);
-void game(Html *html, const char *name, const char *ref);
+void game(Html *html, Game game);
 void contact_info(Html *html);
 void render_blogs(StringBuilder *sb, BlogList list);
 bool get_blogs(Allocator alloc, BlogList *list);
@@ -203,19 +219,50 @@ void project_list(Html *html) {
     html_text_cstr(html, "Projects");
     html_h1_end(html);
 
-    html_ul_begin(html);
-    project(html, "Dynamic compressor CLAP plugin in C", "https://github.com/n0emo/compressor");
-    project(html, "Hyperclip - distortion CLAP/VST plugin", "https://github.com/n0emo/hyperclip");
-    project(html, "NBS - C++ build system", "https://github.com/n0emo/nbs");
-    html_ul_end(html);
+    const static Project projects[] = {
+        (Project) {
+            .name = "Compressor",
+            .desctiption = "Dynamic compressor CLAP plugin in C",
+            .source_code = "https://github.com/n0emo/compressor",
+            .image_src = NULL,
+            .live_demo_src = NULL,
+        },
+        (Project) {
+            .name = "Hyperclip",
+            .desctiption = "Distortion CLAP/VST plugin",
+            .source_code = "https://github.com/n0emo/hyperclip",
+            .image_src = NULL,
+            .live_demo_src = NULL,
+        },
+        (Project) {
+            .name = "NBS",
+            .desctiption = "Build system to build C++ using C++",
+            .source_code = "https://github.com/n0emo/compressor",
+            .image_src = NULL,
+            .live_demo_src = NULL,
+        },
+    };
+
+    html_push_class_cstr(html, "project-list");
+    html_div_begin(html);
+    for (size_t i = 0; i < sizeof(projects) / sizeof(*projects); i++) {
+        project(html, projects[i]);
+    }
+    html_div_end(html);
 
     html_section_end(html);
 }
 
-void project(Html *html, const char *name, const char *ref) {
-    html_li_begin(html);
-    html_hyperlink_cstr(html, name, ref);
-    html_li_end(html);
+void project(Html *html, Project project) {
+    html_push_class_cstr(html, "project");
+    html_div_begin(html);
+
+    html_hyperlink_cstr(html, project.name, project.source_code);
+    html_p_begin(html);
+    html_text_cstr(html, project.desctiption);
+    html_p_end(html);
+
+    html_div_end(html);
 }
 
 void game_list(Html *html) {
@@ -226,13 +273,41 @@ void game_list(Html *html) {
     html_text_cstr(html, "Games");
     html_h1_end(html);
 
-    html_ul_begin(html);
-    html_li_begin(html);
-    html_hyperlink_cstr(html, "Excuse me, what?", "https://n0emo.itch.io/excuse-me-what");
-    html_li_end(html);
-    html_ul_end(html);
+    const static Game games[] = {
+        (Game) {
+            .name = "Excuse me, what?",
+            .desctiption = "Chaotic top-down shooter game",
+            .source_code = "https://github.com/n0emo/chaos",
+            .itch_io = "https://n0emo.itch.io/excuse-me-what",
+            .live_demo = NULL,
+        }
+    };
+
+    html_push_class_cstr(html, "game-list");
+    html_div_begin(html);
+    for (size_t i = 0; i < sizeof(games) / sizeof(*games); i++) {
+        game(html, games[i]);
+    }
+    html_div_end(html);
 
     html_section_end(html);
+}
+
+void game(Html *html, Game game) {
+    html_push_class_cstr(html, "game");
+    html_div_begin(html);
+
+    html_push_class_cstr(html, "title");
+    html_hyperlink_cstr(html, game.name, game.source_code);
+    html_p_begin(html);
+    html_text_cstr(html, game.desctiption);
+    html_p_end(html);
+
+    if (game.itch_io) {
+        html_hyperlink_cstr(html, "itch.io", game.itch_io);
+    }
+
+    html_div_end(html);
 }
 
 void contact_info(Html *html) {
@@ -244,7 +319,11 @@ void contact_info(Html *html) {
     html_h1_end(html);
 
     html_p_begin(html);
-    html_text_cstr(html, "email: solaris[at]gmail.com");
+    html_text_cstr(html, "Email: solaris945[at]gmail.com");
+    html_p_end(html);
+
+    html_p_begin(html);
+    html_text_cstr(html, "Telegram: @omega_lolxd");
     html_p_end(html);
 
     html_section_end(html);

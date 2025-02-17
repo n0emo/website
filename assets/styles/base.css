@@ -58,6 +58,7 @@ main {
     margin-bottom: var(--footer-size);
     color: white;
     padding: 0 3em;
+    padding-bottom: 2em;
 }
 
 footer {
@@ -141,3 +142,18 @@ section div.technology-grid div.technology img {
     filter: drop-shadow(0.5px 0.5px 1px #555);
 }
 
+section div.project {
+    margin: 3em 0;
+}
+
+section div.project a {
+    font-size: 3em;
+}
+
+section div.game {
+    margin: 3em 0;
+}
+
+section div.game a.title {
+    font-size: 3em;
+}
