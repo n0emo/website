@@ -1,12 +1,12 @@
 :root {
-    --footer-size: 80px;
+    --footer-size: 4em;
     --background-primary: #181818;
     --background-secondary: #2d2a31;
 
     @media (min-width: 1500px) {
         --profile-direction: row;
         --profile-margin: 20rem;
-        --technology-size: 9rem;
+        --technology-size: 15rem;
         --technology-font-size: 0.8em;
     }
 
@@ -28,6 +28,28 @@ html {
     min-height: 100%;
     background-color: var(--background-primary);
     scroll-behavior: smooth;
+
+    font-size: 62.5%;
+
+    @media (max-width: 1500px) {
+        font-size: 57.25%;
+    }
+
+    @media (max-width: 1200px) {
+        font-size: 50%;
+    }
+
+    @media (max-width: 770px) {
+        font-size: 43.75%;
+    }
+
+    @media (max-width: 615px) {
+        font-size: 40%;
+    }
+
+    @media (max-width: 350px) {
+        font-size: 35%;
+    }
 }
 
 nav {
@@ -60,9 +82,9 @@ nav li a {
     display: block;
     color: white;
     text-align: center;
-    padding: 14px 16px;
+    padding: 0.9em 0.8em;
     text-decoration: none;
-    font-size: 2rem;
+    font-size: 2.5em;
 }
 
 nav li a:hover {
@@ -89,7 +111,7 @@ footer {
     height: var(--footer-size);
     width: 100%;
     overflow: hidden;
-    font-size: 1.2rem;
+    font-size: 2em;
 }
 
 footer .footer-text {
@@ -106,7 +128,7 @@ footer a:hover {
 }
 
 div.index h1 {
-    padding-top: 1em;
+    padding-top: 2em;
     font-size: 5rem;
     text-align: center;
 }
@@ -132,10 +154,16 @@ section.about div.profile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: space-between;
     gap: 3em;
-    font-size: 1.1em;
+    font-size: 1.5rem;
     text-align: left;
+    padding: 2em 0;
+}
+
+section.about div.profile img {
+    width: 20em;
+    height: 20em;
 }
 
 section div.technology-grid {
@@ -193,16 +221,18 @@ section div.technology-grid div.technology img {
 
 section div.project {
     margin: 3em 0;
+    font-size: 1.5em;
 }
 
 section div.project a {
-    font-size: 3em;
+    font-size: 2em;
 }
 
 section div.game {
     margin: 3em 0;
+    font-size: 1.5em;
 }
 
 section div.game a.title {
-    font-size: 3em;
+    font-size: 2em;
 }
