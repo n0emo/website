@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -77,6 +78,8 @@ void http_server_destroy(HttpServer *server) {
 }
 
 bool http_server_start(HttpServer *server) {
+    signal(SIGPIPE, SIG_IGN);
+
     if (listen(server->socket, 100) == -1) {
         log_error("Error listening: %s", strerror(errno));
         return false;
@@ -132,7 +135,7 @@ int handle_connection(void *arg) {
 
     try(http_request_parse(&request, data->connfd));
     http_headermap_insert_cstrs(&response.headers, "Connection", "close");
-    http_headermap_insert_cstrs(&response.headers, "X-Frame-Options", "DENY");
+    http_headermap_insert_cstrs(&response.headers, "X-Frame-Options", "SAMEORIGIN");
     http_headermap_insert_cstrs(&response.headers, "Content-Security-Policy", "default-src 'self';");
     try(http_router_handle(&data->server->router, &request, &response));
 

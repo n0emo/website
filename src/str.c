@@ -1,7 +1,8 @@
 #include "str.h"
 
-#include "utils.h"
 #include <string.h>
+
+#include "utils.h"
 
 bool str_contains(const char *s, char c) {
     while (*s != '\0') {
@@ -191,4 +192,18 @@ size_t sv_count_char(StringView sv, char c) {
         if (sv.items[i] == c) count++;
     }
     return count;
+}
+
+ssize_t sv_index_char(StringView sv, char c) {
+    for (ssize_t i = 0; i < sv.count; i++) {
+        if (sv.items[i] == c) return i;
+    }
+    return -1;
+}
+
+ssize_t sv_last_index_char(StringView sv, char c) {
+    for (ssize_t i = sv.count - 1; i >= 0; i--) {
+        if (sv.items[i] == c) return i;
+    }
+    return -1;
 }

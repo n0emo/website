@@ -165,6 +165,12 @@ void about(Html *html) {
     html_push_class_cstr(html, "content");
     html_div_begin(html);
 
+    html_push_class_cstr(html, "profile");
+    html_div_begin(html);
+
+    html_push_attribute_cstrs(html, "src", "/logos/Person.svg");
+    html_img_short(html);
+
     html_p_begin(html);
     html_text_cstr(
         html,
@@ -175,7 +181,9 @@ void about(Html *html) {
     );
     html_p_end(html);
 
-    static const char *technologies[] = { "C", "Rust", "Tokio", "C++", "Git", "C#", "Python", "WebGPU", "JavaScript", "Clojure" };
+    html_div_end(html);
+
+    static const char *technologies[] = { "WebGPU", "C", "Tokio", "Git", "Python", "C#", "Rust", "C++", "JavaScript", "Clojure", "Go" };
     html_push_class_cstr(html, "technology-grid");
     html_div_begin(html);
     for (size_t i = 0; i < sizeof(technologies) / sizeof(technologies[0]); i++) {
@@ -199,8 +207,6 @@ void technology(Html *html, const char *name) {
     http_urlencode(cstr_to_sv(name), &src);
     sb_append_cstr(&src, ".svg\0");
     html_push_attribute_cstrs(html, "src", src.items);
-    html_push_attribute_cstrs(html, "width", "100px");
-    html_push_attribute_cstrs(html, "height", "100px");
     html_tag_short(html, "img");
 
     html_p_begin(html);
@@ -505,6 +511,9 @@ void render_music(StringBuilder *sb) {
 void page_base_begin(Html *html, StringView title) {
     html_head_begin(html);
     html_title(html, title);
+    html_push_attribute_cstrs(html, "name", "viewport");
+    html_push_attribute_cstrs(html, "content", "width=device-width");
+    html_meta_short(html);
     html_push_attribute_cstrs(html, "rel", "stylesheet");
     html_push_attribute_cstrs(html, "href", "/styles/base.css");
     html_link_short(html);

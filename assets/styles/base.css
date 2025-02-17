@@ -1,8 +1,23 @@
 :root {
-    --footer-size: 60px;
+    --footer-size: 80px;
     --background-primary: #181818;
     --background-secondary: #2d2a31;
+
+    @media (min-width: 1500px) {
+        --profile-direction: row;
+        --profile-margin: 20rem;
+        --technology-size: 9rem;
+        --technology-font-size: 0.8em;
+    }
+
+    @media (max-width: 1500px) {
+        --profile-direction: column;
+        --profile-margin: 5rem;
+        --technology-size: 15vw;
+        --technology-font-size: calc(0.5em + 0.5vw);
+    }
 }
+
 
 * {
     margin: 0;
@@ -57,8 +72,9 @@ nav li a:hover {
 main {
     margin-bottom: var(--footer-size);
     color: white;
-    padding: 0 3em;
     padding-bottom: 2em;
+    margin-right: var(--profile-margin);
+    margin-left: var(--profile-margin);
 }
 
 footer {
@@ -73,6 +89,7 @@ footer {
     height: var(--footer-size);
     width: 100%;
     overflow: hidden;
+    font-size: 1.2rem;
 }
 
 footer .footer-text {
@@ -104,42 +121,74 @@ section {
 }
 
 section.about div.content {
-    padding-left: 15%;
-    padding-right: 15%;
+    padding-top: 5em;
+    gap: 3em;
     display: flex;
-    flex-direction: row;
     align-items: stretch;
+    flex-direction: var(--profile-direction);
+}
+
+section.about div.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 3em;
+    font-size: 1.1em;
+    text-align: left;
 }
 
 section div.technology-grid {
     margin: auto;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2%;
-    width: 240%;
+    grid-auto-flow: row dense;
+    justify-content: center;
+    gap: 1em;
+    grid-template-columns: repeat(5, var(--technology-size));
+}
+
+section div.technology-grid div:nth-child(5n + 2) {
+    grid-column-end: span 3;
+    grid-row-end: span 2;
+    font-size: 2em;
+}
+
+section div.technology-grid div:nth-child(3n - 1) {
+    grid-column-end: span 2;
+    grid-row-end: span 2;
+    font-size: 2em;
+}
+
+section div.technology-grid div:nth-child(11) {
+    grid-column-end: span 1;
+    grid-row-end: span 1;
+    font-size: 1em;
 }
 
 section div.technology-grid div.technology-wrap {
     background: linear-gradient(156deg, rgba(106,81,144,1) 0%, rgba(146,54,163,1) 50%, rgba(104,120,213,1) 100%);
     padding: 5px;
-    border-radius: 7px;
-    width: 235px;
-    height: 165px;
+    border-radius: 10px;
 }
 
 section div.technology-grid div.technology {
     background: #181818;
+    border-radius: 7px;
     gap: 10px;
     align-items: center;
     display: flex;
     flex: 1;
     flex-direction: column;
-    padding: auto;
-    padding: 10px;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 100%;
+    font-size: var(--technology-font-size);
 }
 
 section div.technology-grid div.technology img {
     filter: drop-shadow(0.5px 0.5px 1px #555);
+    width: 60%;
+    height: 60%;
 }
 
 section div.project {

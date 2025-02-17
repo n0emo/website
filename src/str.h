@@ -2,6 +2,7 @@
 #define STR_H_
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #include "alloc.h"
 
@@ -48,5 +49,7 @@ StringView sv_trim_space(StringView sv);
 StringView sv_chop_by(StringView *sv, char c);
 StringView sv_dup(Allocator alloc, StringView sv);
 size_t sv_count_char(StringView sv, char c);
+ssize_t sv_index_char(StringView sv, char c);
+ssize_t sv_last_index_char(StringView sv, char c);
 
 #endif // STRINGVIEW_H_
