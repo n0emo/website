@@ -138,12 +138,12 @@ void render_index(StringBuilder *sb) {
 }
 
 void about(Html *html) {
-    html_push_class_cstr(html, "section");
-    html_push_class_cstr(html, "technologies");
-    html_div_begin(html);
+    html_push_class_cstr(html, "about");
+    html_push_attribute_cstrs(html, "id", "about");
+    html_section_begin(html);
 
     html_h1_begin(html);
-    html_text_cstr(html, "Albert Shefner");
+    html_text_cstr(html, "About");
     html_h1_end(html);
 
     html_push_class_cstr(html, "content");
@@ -152,7 +152,8 @@ void about(Html *html) {
     html_p_begin(html);
     html_text_cstr(
         html,
-        "Software engineer interested in many areas, such as: low-level, "
+        "I'm Albert Shefner. I'm a "
+        "software engineer interested in many areas, such as: low-level, "
         "system and audio programming; web and game development. Can work "
         "with any enough documented piece of technology."
     );
@@ -168,7 +169,7 @@ void about(Html *html) {
 
     html_div_end(html);
 
-    html_div_end(html);
+    html_section_end(html);
 }
 
 void technology(Html *html, const char *name) {
@@ -195,8 +196,8 @@ void technology(Html *html, const char *name) {
 }
 
 void project_list(Html *html) {
-    html_push_class_cstr(html, "section");
-    html_div_begin(html);
+    html_push_attribute_cstrs(html, "id", "projects");
+    html_section_begin(html);
 
     html_h1_begin(html);
     html_text_cstr(html, "Projects");
@@ -208,7 +209,7 @@ void project_list(Html *html) {
     project(html, "NBS - C++ build system", "https://github.com/n0emo/nbs");
     html_ul_end(html);
 
-    html_div_end(html);
+    html_section_end(html);
 }
 
 void project(Html *html, const char *name, const char *ref) {
@@ -218,8 +219,8 @@ void project(Html *html, const char *name, const char *ref) {
 }
 
 void game_list(Html *html) {
-    html_push_class_cstr(html, "section");
-    html_div_begin(html);
+    html_push_attribute_cstrs(html, "id", "games");
+    html_section_begin(html);
 
     html_h1_begin(html);
     html_text_cstr(html, "Games");
@@ -231,12 +232,12 @@ void game_list(Html *html) {
     html_li_end(html);
     html_ul_end(html);
 
-    html_div_end(html);
+    html_section_end(html);
 }
 
 void contact_info(Html *html) {
-    html_push_class_cstr(html, "section");
-    html_div_begin(html);
+    html_push_attribute_cstrs(html, "id", "contact");
+    html_section_begin(html);
 
     html_h1_begin(html);
     html_text_cstr(html, "Contact");
@@ -246,7 +247,7 @@ void contact_info(Html *html) {
     html_text_cstr(html, "email: solaris[at]gmail.com");
     html_p_end(html);
 
-    html_div_end(html);
+    html_section_end(html);
 }
 
 // TODO: render markdown to HTML
@@ -432,12 +433,11 @@ void page_base_begin(Html *html, StringView title) {
 
     html_body_begin(html);
     navigation_menu(html);
-    html_push_class_cstr(html, "main-content");
-    html_div_begin(html);
+    html_main_begin(html);
 }
 
 void page_base_end(Html *html) {
-    html_div_end(html);
+    html_main_end(html);
     footer(html);
     html_body_end(html);
     html_end(html);
@@ -446,12 +446,10 @@ void page_base_end(Html *html) {
 void navigation_menu(Html *html) {
     html_nav_begin(html);
     html_ul_begin(html);
-    link_item(html, "Home", "/");
-    link_item(html, "Blogs", "/blogs");
-    link_item(html, "Music", "/music");
-
-    html_push_class_cstr(html, "nav-right");
-    link_item(html, "GitHub", "https://github.com/n0emo");
+    link_item(html, "About", "#about");
+    link_item(html, "Projects", "#projects");
+    link_item(html, "Games", "#games");
+    link_item(html, "Contact", "#contact");
 
     html_ul_end(html);
     html_nav_end(html);

@@ -1,7 +1,7 @@
 :root {
     --footer-size: 60px;
     --background-primary: #181818;
-    --background-secondary: #29293d;
+    --background-secondary: #2d2a31;
 }
 
 * {
@@ -12,26 +12,29 @@ html {
     position: relative;
     min-height: 100%;
     background-color: var(--background-primary);
+    scroll-behavior: smooth;
 }
 
 nav {
     background-color: var(--background-secondary);
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 99999999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 nav ul {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5em;
     list-style-type: none;
     margin: 0;
     padding: 0;
     overflow: hidden;
-}
-
-nav li {
-    float: left;
-    border-right:1px solid #ccc;
-}
-
-nav li:last-child {
-    border-right: none;
 }
 
 nav li.nav-right {
@@ -44,15 +47,17 @@ nav li a {
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
+    font-size: 2rem;
 }
 
 nav li a:hover {
-    background-color: #1b191f;
+    color: #b59be0;
 }
 
-.main-content {
+main {
     margin-bottom: var(--footer-size);
     color: white;
+    padding: 0 3em;
 }
 
 footer {
@@ -83,12 +88,9 @@ footer a:hover {
 }
 
 div.index h1 {
-    font-size: 5em;
+    padding-top: 1em;
+    font-size: 5rem;
     text-align: center;
-}
-
-div.index {
-    padding: 2em;
 }
 
 div.index p, div.index a {
@@ -96,12 +98,11 @@ div.index p, div.index a {
     color: #eeeeff;
 }
 
-div.section {
+section {
     margin-bottom: 3em;
-    margin-top: 1em;
 }
 
-div.section.technologies div.content {
+section.about div.content {
     padding-left: 15%;
     padding-right: 15%;
     display: flex;
@@ -109,7 +110,7 @@ div.section.technologies div.content {
     align-items: stretch;
 }
 
-div.section div.technology-grid {
+section div.technology-grid {
     margin: auto;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -117,7 +118,7 @@ div.section div.technology-grid {
     width: 240%;
 }
 
-div.section div.technology-grid div.technology-wrap {
+section div.technology-grid div.technology-wrap {
     background: linear-gradient(156deg, rgba(106,81,144,1) 0%, rgba(146,54,163,1) 50%, rgba(104,120,213,1) 100%);
     padding: 5px;
     border-radius: 7px;
@@ -125,7 +126,7 @@ div.section div.technology-grid div.technology-wrap {
     height: 165px;
 }
 
-div.section div.technology-grid div.technology {
+section div.technology-grid div.technology {
     background: #181818;
     gap: 10px;
     align-items: center;
@@ -136,7 +137,7 @@ div.section div.technology-grid div.technology {
     padding: 10px;
 }
 
-div.section div.technology-grid div.technology img {
+section div.technology-grid div.technology img {
     filter: drop-shadow(0.5px 0.5px 1px #555);
 }
 
