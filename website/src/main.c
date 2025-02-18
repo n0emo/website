@@ -14,6 +14,8 @@
 #include "web.c"
 
 int main() {
+    log_init();
+
     int port = 9000;
     const char *port_env = getenv("SERVER_PORT");
 

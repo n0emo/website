@@ -1,10 +1,12 @@
 profile := "debug"
+sanitizers := "false"
 
 cc := "clang"
 
-common-cflags := "-std=gnu17 -Wall -Wextra -Wno-unused-parameter "
+common-cflags := "-std=gnu17 -Wall -Wextra -Wno-unused-parameter -fsanitize=thread " + \
+    if sanitizers == "true" { "-fsanitize=undefined -fsanitize=address " } else { "" }
 profile-cflags := if profile == "debug" {
-    common-cflags + "-DLOG_WITH_FILE -g -fsanitize=undefined -fsanitize=address "
+    common-cflags + "-DLOG_WITH_FILE -g "
 } else if profile == "release" {
     common-cflags + "-O2 "
 } else {

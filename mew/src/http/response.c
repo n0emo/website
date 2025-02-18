@@ -72,10 +72,10 @@ bool http_response_write(HttpResponse *response, int fd) {
 #ifdef __APPLE__
             off_t offset = (off_t) sf.size;
             int ret = sendfile(body_fd, fd, 0, &offset, NULL, 0);
-            if (close(fd) < 0 || ret != 0) return false;
+            if (close(body_fd) < 0 || ret != 0) return false;
 #else
             int ret = sendfile(fd, body_fd, NULL, sf.size);
-            if (close(fd) < 0 || ret != (ssize_t) sf.size) return false;
+            if (close(body_fd) < 0 || ret != (ssize_t) sf.size) return false;
 #endif
         };
       break;

@@ -9,6 +9,8 @@ typedef enum {
     LOG_ERROR,
 } LogLevel;
 
+void log_init();
+
 const char *log_level_str(LogLevel level);
 void log_simple(LogLevel level, const char *format, ...) __attribute__((format(printf, 2, 3)));
 

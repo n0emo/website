@@ -1,8 +1,15 @@
 #include "mew/log.h"
 
+#include <pthread.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
+
+static pthread_mutex_t mtx;
+
+void log_init() {
+    pthread_mutex_init(&mtx, NULL);
+}
 
 const char *log_level_str(LogLevel level) {
     switch (level) {
@@ -22,6 +29,7 @@ void log_simple(LogLevel level, const char *format, ...) {
         stream = stderr;
     }
 
+    pthread_mutex_lock(&mtx);
     time_t my_time;
     struct tm *timeinfo;
     time(&my_time);
@@ -46,6 +54,7 @@ void log_simple(LogLevel level, const char *format, ...) {
 
     fprintf(stream, "\n");
 
+    pthread_mutex_unlock(&mtx);
 }
 
 #ifdef LOG_WITH_FILE
@@ -55,6 +64,8 @@ void log_with_file(LogLevel level, const char *file, int line, const char *forma
         stream = stderr;
     }
 
+    // TODO: consider timed lock
+    pthread_mutex_lock(&mtx);
     time_t my_time;
     struct tm *timeinfo;
     time(&my_time);
@@ -80,5 +91,6 @@ void log_with_file(LogLevel level, const char *file, int line, const char *forma
     va_end(args);
 
     fprintf(stream, "\n");
+    pthread_mutex_unlock(&mtx);
 }
 #endif

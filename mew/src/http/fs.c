@@ -1,5 +1,6 @@
 #include "mew/http/fs.h"
 
+#include <string.h>
 #include <sys/stat.h>
 
 bool try_serve_dir(HttpResponse *response, StringView file, StringView dir) {
@@ -18,7 +19,9 @@ bool try_serve_dir(HttpResponse *response, StringView file, StringView dir) {
     }
 
     struct stat file_stat = {0};
-    if (stat(path, &file_stat) != 0) return false;
+    if (stat(path, &file_stat) != 0) {
+        return false;
+    };
 
     StringView sv = cstr_to_sv(path);
     ssize_t i = sv_last_index_char(sv, '.');
