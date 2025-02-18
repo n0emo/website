@@ -2,6 +2,7 @@
 
 #include "game.h"
 
+// TODO: better design
 void comp_game_list(Html *html) {
     html_push_attribute_cstrs(html, "id", "games");
     html_section_begin(html);

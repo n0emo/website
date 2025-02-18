@@ -1,5 +1,6 @@
 #include "contact_info.h"
 
+// TODO: better design
 void comp_contact_info(Html *html) {
     html_push_attribute_cstrs(html, "id", "contact");
     html_section_begin(html);

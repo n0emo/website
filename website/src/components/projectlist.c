@@ -2,6 +2,7 @@
 
 #include "components/project.h"
 
+// TODO: better design
 void comp_project_list(Html *html) {
     html_push_attribute_cstrs(html, "id", "projects");
     html_section_begin(html);

@@ -37,4 +37,6 @@ typedef struct {
 
 bool http_response_write(HttpResponse *response, int fd);
 
+// TODO: add common response helpers
+
 #endif // MEW_INCLUDE_MEW_HTTP_RESPONSE_H_
