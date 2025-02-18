@@ -3,21 +3,20 @@
     --background-primary: #181818;
     --background-secondary: #2d2a31;
 
-    @media (min-width: 1500px) {
+    @media (min-width: 1400px) {
         --profile-direction: row;
         --profile-margin: 20rem;
         --technology-size: 15rem;
         --technology-font-size: 0.8em;
     }
 
-    @media (max-width: 1500px) {
+    @media (max-width: 1400px) {
         --profile-direction: column;
         --profile-margin: 5rem;
         --technology-size: 15vw;
         --technology-font-size: calc(0.5em + 0.5vw);
     }
 }
-
 
 * {
     margin: 0;
