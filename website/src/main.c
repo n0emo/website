@@ -11,7 +11,27 @@
 
 #include "web.h"
 
+// Single translation unit
+
+#include "components/about.c"
+#include "components/contact_info.c"
+#include "components/footer.c"
+#include "components/game.c"
+#include "components/gamelist.c"
+#include "components/linkitem.c"
+#include "components/navmenu.c"
+#include "components/project.c"
+#include "components/projectlist.c"
+#include "components/technology.c"
+
+#include "pages/base.c"
+#include "pages/blog.c"
+#include "pages/blogs.c"
+#include "pages/index.c"
+#include "pages/music.c"
+
 #include "web.c"
+#include "blogs.c"
 
 int main() {
     log_init();

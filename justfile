@@ -12,7 +12,7 @@ profile-cflags := if profile == "debug" {
 } else {
     ""
 }
-website-cflags := profile-cflags + "-I./mew/include "
+website-cflags := profile-cflags + "-I./mew/include -I./website/src"
 libmew-cflags := profile-cflags + "-I./mew/include -fPIC "
 
 website-libs := "-L./build -lmew"
