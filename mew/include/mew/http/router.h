@@ -1,8 +1,8 @@
 // TODO: radix tree
 // TODO: middleware
 // TODO: nest routers
-#ifndef HTTP_ROUTER_H_
-#define HTTP_ROUTER_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_ROUTER_H_
+#define MEW_INCLUDE_MEW_HTTP_ROUTER_H_
 
 #include "mew/alloc.h"
 #include "mew/http/handler.h"
@@ -47,4 +47,4 @@ void http_route_fallback(HttpRouter *router, http_request_handle_func_t *handler
     char *: http_route_handler_cstr \
 )(router, path, handler)
 
-#endif // HTTP_ROUTER_H_
+#endif // MEW_INCLUDE_MEW_HTTP_ROUTER_H_

@@ -1,5 +1,5 @@
-#ifndef HTTP_HEADERMAP_H_
-#define HTTP_HEADERMAP_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_HEADERMAP_H_
+#define MEW_INCLUDE_MEW_HTTP_HEADERMAP_H_
 
 #include "mew/containers/hashmap.h"
 #include "mew/str.h"
@@ -31,4 +31,4 @@ void http_headermap_init(HttpHeaderMap *map, Allocator alloc);
 void http_headermap_insert(HttpHeaderMap *map, HttpHeader header);
 void http_headermap_insert_cstrs(HttpHeaderMap *map, const char *key, const char *value);
 
-#endif // HTTP_HEADERMAP_H_
+#endif // MEW_INCLUDE_MEW_HTTP_HEADERMAP_H_

@@ -1,5 +1,5 @@
-#ifndef RBTREE_H_
-#define RBTREE_H_
+#ifndef MEW_INCLUDE_MEW_CONTAINERS_RBTREE_H_
+#define MEW_INCLUDE_MEW_CONTAINERS_RBTREE_H_
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -43,4 +43,4 @@ RBTreeNode *rbtree_insert(RBTree *tree, const void *element);
 void *rbtree_remove(RBTree *tree, const void *element);
 void rbtree_iterate_ascending(RBTree *tree, btree_iter_f_t *iter_f);
 
-#endif // RBTREE_H_
+#endif // MEW_INCLUDE_MEW_CONTAINERS_RBTREE_H_

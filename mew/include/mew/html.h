@@ -1,5 +1,5 @@
-#ifndef HTML_H_
-#define HTML_H_
+#ifndef MEW_INCLUDE_MEW_HTML_H_
+#define MEW_INCLUDE_MEW_HTML_H_
 
 #include "utils.h"
 
@@ -186,4 +186,4 @@ void html_append_current_indentation(Html *html);
 void html_render_class(Html *html);
 void html_render_attributes(Html *html);
 
-#endif // HTML_H_
+#endif // MEW_INCLUDE_MEW_HTML_H_

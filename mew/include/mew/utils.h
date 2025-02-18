@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef MEW_INCLUDE_MEW_UTILS_H_
+#define MEW_INCLUDE_MEW_UTILS_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -47,5 +47,4 @@ bool read_file_to_sb(const char *path, StringBuilder *sb);
 
 void wait_for_ctrl_c();
 
-#endif // UTILS_H_
-
+#endif // MEW_INCLUDE_MEW_UTILS_H_

@@ -1,5 +1,5 @@
-#ifndef HTTP_COMMON_H_
-#define HTTP_COMMON_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_COMMON_H_
+#define MEW_INCLUDE_MEW_HTTP_COMMON_H_
 
 #include <stdbool.h>
 
@@ -22,4 +22,4 @@ const char *http_method_str(HttpMethod method);
 bool http_urldecode(StringView sv, StringBuilder *out);
 void http_urlencode(StringView sv, StringBuilder *out);
 
-#endif // HTTP_COMMON_H_
+#endif // MEW_INCLUDE_MEW_HTTP_COMMON_H_

@@ -1,5 +1,5 @@
-#ifndef HTTP_SERVER_H_
-#define HTTP_SERVER_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_SERVER_H_
+#define MEW_INCLUDE_MEW_HTTP_SERVER_H_
 
 #include <netinet/in.h>
 #include <stdint.h>
@@ -23,4 +23,4 @@ bool http_server_init(HttpServer *server, HttpRouter router, HttpServerSettings 
 void http_server_destroy(HttpServer *server);
 bool http_server_start(HttpServer *server);
 
-#endif // HTTP_SERVER_H_
+#endif // MEW_INCLUDE_MEW_HTTP_SERVER_H_

@@ -1,5 +1,5 @@
-#ifndef HTTP_HANDLER_H_
-#define HTTP_HANDLER_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_HANDLER_H_
+#define MEW_INCLUDE_MEW_HTTP_HANDLER_H_
 
 #include "mew/http/request.h"
 #include "mew/http/response.h"
@@ -14,4 +14,4 @@ typedef struct HttpRequestHandler {
     void *user_data;
 } HttpRequestHandler;
 
-#endif // HTTP_HANDLER_H_
+#endif // MEW_INCLUDE_MEW_HTTP_HANDLER_H_

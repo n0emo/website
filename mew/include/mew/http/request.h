@@ -1,5 +1,5 @@
-#ifndef HTTP_REQUEST_H_
-#define HTTP_REQUEST_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_REQUEST_H_
+#define MEW_INCLUDE_MEW_HTTP_REQUEST_H_
 
 #include "mew/alloc.h"
 #include "mew/containers/hashmap.h"
@@ -33,4 +33,4 @@ typedef struct {
 bool http_request_init(HttpRequest *request, Allocator alloc);
 bool http_request_parse(HttpRequest *request, int fd);
 
-#endif // HTTP_REQUEST_H_
+#endif // MEW_INCLUDE_MEW_HTTP_REQUEST_H_

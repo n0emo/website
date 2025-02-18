@@ -1,5 +1,5 @@
-#ifndef LOG_H_
-#define LOG_H_
+#ifndef MEW_INCLUDE_MEW_LOG_H_
+#define MEW_INCLUDE_MEW_LOG_H_
 
 typedef enum {
     LOG_TRACE,
@@ -31,4 +31,4 @@ void log_with_file(LogLevel level, const char *file, int line, const char *forma
 #define log_warn(...) log(LOG_WARN, __VA_ARGS__)
 #define log_error(...) log(LOG_ERROR, __VA_ARGS__)
 
-#endif // LOG_H_
+#endif // MEW_INCLUDE_MEW_LOG_H_

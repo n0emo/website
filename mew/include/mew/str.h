@@ -1,5 +1,5 @@
-#ifndef STR_H_
-#define STR_H_
+#ifndef MEW_INCLUDE_MEW_STR_H_
+#define MEW_INCLUDE_MEW_STR_H_
 
 #include <stdbool.h>
 #include <sys/types.h>
@@ -52,4 +52,4 @@ size_t sv_count_char(StringView sv, char c);
 ssize_t sv_index_char(StringView sv, char c);
 ssize_t sv_last_index_char(StringView sv, char c);
 
-#endif // STRINGVIEW_H_
+#endif // MEW_INCLUDE_MEW_STR_H_

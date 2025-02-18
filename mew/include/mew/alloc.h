@@ -1,5 +1,5 @@
-#ifndef ALLOC_H_
-#define ALLOC_H_
+#ifndef MEW_INCLUDE_MEW_ALLOC_H_
+#define MEW_INCLUDE_MEW_ALLOC_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -86,4 +86,4 @@ void arena_free_arena(Arena *arena);
 Region *new_region(size_t capacity);
 void free_region(Region *region);
 
-#endif // ALLOC_H_
+#endif // MEW_INCLUDE_MEW_ALLOC_H_

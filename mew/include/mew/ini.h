@@ -1,5 +1,5 @@
-#ifndef INI_H_
-#define INI_H_
+#ifndef MEW_INCLUDE_MEW_INI_H_
+#define MEW_INCLUDE_MEW_INI_H_
 
 #include "utils.h"
 #include "alloc.h"
@@ -35,4 +35,4 @@ bool parse_ini(StringView text, Ini *ini);
 IniSection *ini_get_section(Ini ini, StringView name);
 IniItem *ini_get_item(IniSection section, StringView name);
 
-#endif // INI_H_
+#endif // MEW_INCLUDE_MEW_INI_H_

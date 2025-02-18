@@ -1,5 +1,5 @@
-#ifndef HTTP_RESPONSE_H_
-#define HTTP_RESPONSE_H_
+#ifndef MEW_INCLUDE_MEW_HTTP_RESPONSE_H_
+#define MEW_INCLUDE_MEW_HTTP_RESPONSE_H_
 
 #include <stddef.h>
 
@@ -37,4 +37,4 @@ typedef struct {
 
 bool http_response_write(HttpResponse *response, int fd);
 
-#endif //  HTTP_RESPONSE_H_
+#endif // MEW_INCLUDE_MEW_HTTP_RESPONSE_H_

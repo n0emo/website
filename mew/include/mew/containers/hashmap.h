@@ -1,5 +1,5 @@
-#ifndef CONTAINERS_HASHMAP_H_
-#define CONTAINERS_HASHMAP_H_
+#ifndef MEW_INCLUDE_MEW_CONTAINERS_HASHMAP_H_
+#define MEW_INCLUDE_MEW_CONTAINERS_HASHMAP_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -38,4 +38,4 @@ bool hashmap_iterate(HashMap *map, hashmap_iter_t iter);
 hashfunc_t hashmap_sv_hash;
 hashmap_equals_t hashmap_sv_equals;
 
-#endif // CONTAINERS_HASHMAP_H_
+#endif // MEW_INCLUDE_MEW_CONTAINERS_HASHMAP_H_

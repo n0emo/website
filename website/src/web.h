@@ -1,9 +1,8 @@
-#ifndef WEB_H_
-#define WEB_H_
+#ifndef WEBSITE_SRC_WEB_H_
+#define WEBSITE_SRC_WEB_H_
 
 #include "mew/http/http.h"
 
 void web_setup_handlers(HttpRouter *router);
 
-#endif // WEB_H_
-
+#endif // WEBSITE_SRC_WEB_H_

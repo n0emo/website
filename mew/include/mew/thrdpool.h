@@ -1,5 +1,5 @@
-#ifndef THRDPOOL_H_
-#define THRDPOOL_H_
+#ifndef MEW_INCLUDE_MEW_THRDPOOL_H_
+#define MEW_INCLUDE_MEW_THRDPOOL_H_
 
 #include <stdatomic.h>
 #include <stdbool.h>
@@ -40,4 +40,4 @@ void thrdpool_init(ThreadPool *pool, size_t thread_count);
 void thrdpool_destroy(ThreadPool *pool);
 void thrdpool_add_job(ThreadPool *pool, JobExecutor *executor, void *arg);
 
-#endif // THRDPOOL_H_
+#endif // MEW_INCLUDE_MEW_THRDPOOL_H_
