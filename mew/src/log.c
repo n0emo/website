@@ -29,21 +29,21 @@ void log_simple(LogLevel level, const char *format, ...) {
         stream = stderr;
     }
 
-    pthread_mutex_lock(&mtx);
-    time_t my_time;
-    struct tm *timeinfo;
-    time(&my_time);
-    timeinfo = localtime(&my_time);
+    time_t timer;
+    struct tm timeinfo;
+    time(&timer);
+    localtime_r(&timer, &timeinfo);
 
+    pthread_mutex_lock(&mtx);
     fprintf(
         stream,
         "[%04d:%02d:%02d %02d:%02d:%02d] %s: ",
-        timeinfo->tm_year+1900,
-        timeinfo->tm_mon+1,
-        timeinfo->tm_mday,
-        timeinfo->tm_hour,
-        timeinfo->tm_min,
-        timeinfo->tm_sec,
+        timeinfo.tm_year+1900,
+        timeinfo.tm_mon+1,
+        timeinfo.tm_mday,
+        timeinfo.tm_hour,
+        timeinfo.tm_min,
+        timeinfo.tm_sec,
         log_level_str(level)
     );
 
