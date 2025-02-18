@@ -2,9 +2,9 @@ profile := "debug"
 
 cc := "clang"
 
-common-cflags := "-std=gnu17 -Wall -Wextra -Wno-unused-parameter -DLOG_WITH_FILE "
+common-cflags := "-std=gnu17 -Wall -Wextra -Wno-unused-parameter "
 profile-cflags := if profile == "debug" {
-    common-cflags + "-g -fsanitize=undefined -fsanitize=address "
+    common-cflags + "-DLOG_WITH_FILE -g -fsanitize=undefined -fsanitize=address "
 } else if profile == "release" {
     common-cflags + "-O2 "
 } else {

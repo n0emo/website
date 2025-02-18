@@ -3,7 +3,8 @@ FROM ubuntu:latest AS builder
 
 WORKDIR /
 
-COPY ./src/ ./src/
+COPY ./website/ ./website/
+COPY ./mew/ ./mew/
 COPY ./justfile justfile
 
 RUN apt update && apt install clang just -y
