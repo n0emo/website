@@ -105,6 +105,11 @@ bool accept_connection(HttpServer *server) {
         return_defer(false);
     }
 
+    struct timeval tv;
+    tv.tv_sec = 120;
+    tv.tv_usec = 0;
+    setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
     data = calloc(1, sizeof(ThreadData));
     data->connfd = connfd;
     data->server = server;
@@ -119,12 +124,11 @@ defer:
     return result;
 }
 
-int handle_connection(void *arg) {
-    ThreadData *data = (ThreadData *) arg;
-
+bool serve_request(ThreadData *data) {
     bool result = true;
-    HttpRequest request = {0};
+
     Arena arena = {0};
+    HttpRequest request = {0};
     Allocator alloc = new_arena_allocator(&arena);
     http_request_init(&request, alloc);
 
@@ -134,7 +138,6 @@ int handle_connection(void *arg) {
     response.sd = data->connfd;
 
     try(http_request_parse(&request, data->connfd));
-    http_headermap_insert_cstrs(&response.headers, "Connection", "close");
     http_headermap_insert_cstrs(&response.headers, "X-Frame-Options", "SAMEORIGIN");
     http_headermap_insert_cstrs(&response.headers, "Content-Security-Policy", "default-src 'self';");
     try(http_router_handle(&data->server->router, &request, &response));
@@ -143,7 +146,15 @@ int handle_connection(void *arg) {
 
 defer:
     arena_free_arena(&arena);
+    return result;
+}
+
+int handle_connection(void *arg) {
+    ThreadData *data = (ThreadData *) arg;
+
+    while (serve_request(data)) { }
+
     close(data->connfd);
     free(data);
-    return !result;
+    return 0;
 }

@@ -93,9 +93,7 @@ bool http_request_parse(HttpRequest *request, int fd) {
     return true;
 }
 
-// TODO: time limit
 bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body) {
-    // TODO maybe it's not a good idea to allocate 8Kb at the stack for each request
     char buf[BUF_CAP] = {0};
 
     size_t count = 0;
