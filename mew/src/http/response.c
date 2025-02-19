@@ -1,5 +1,6 @@
 #include "mew/http/response.h"
 
+#include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -12,8 +13,6 @@
 
 #include "mew/http/common.h"
 #include "mew/log.h"
-
-void response_write_rbtree_iter(const void *element, void *user_data);
 
 bool http_response_write(HttpResponse *response, int fd) {
     if (dprintf(fd, "HTTP/1.1 %d %s\r\n", response->status, http_status_desc(response->status)) < 0) {
@@ -84,3 +83,30 @@ bool http_response_write(HttpResponse *response, int fd) {
     return true;
 }
 
+void http_response_body_set_bytes(HttpResponse *response) {
+    assert(response->body.kind == RESPONSE_BODY_NONE);
+    response->body.kind = RESPONSE_BODY_BYTES;
+    response->body.as.bytes = (StringBuilder) {0};
+    response->body.as.bytes.alloc = response->body.alloc;
+}
+
+void http_response_body_set_sendfile(HttpResponse *response, ResponseSendFile sendfile) {
+    assert(response->body.kind == RESPONSE_BODY_NONE);
+    response->body.kind = RESPONSE_BODY_SENDFILE;
+    response->body.as.sendfile = sendfile;
+}
+
+void http_response_set_html(HttpResponse *response) {
+    assert(response->body.kind == RESPONSE_BODY_BYTES);
+    assert(response->body.as.bytes.count > 0);
+    response->status = HTTP_OK;
+    http_headermap_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
+}
+
+void http_response_not_found(HttpResponse *response) {
+    response->status = HTTP_NOT_FOUND;
+}
+
+void http_response_set_internal_server_error(HttpResponse *response) {
+    response->status = HTTP_INTERNAL_SERVER_ERROR;
+}

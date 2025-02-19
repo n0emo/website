@@ -42,11 +42,7 @@ bool try_serve_dir(HttpResponse *response, StringView file, StringView dir) {
         }
     }
 
-    response->body.kind = RESPONSE_BODY_SENDFILE;
-    response->body.as.sendfile = (ResponseSendFile) {
-        .path = path,
-        .size = file_stat.st_size,
-    };
+    http_response_body_set_sendfile(response, (ResponseSendFile) { path, file_stat.st_size });
 
     return true;
 }

@@ -9,8 +9,6 @@
 #include "pages/index.h"
 #include "pages/blogs.h"
 
-void response_setup_html(HttpResponse *response);
-
 void render_music(StringBuilder *sb);
 void page_base_begin(Html *html, StringView title);
 void page_base_end(Html *html);
@@ -32,8 +30,9 @@ void web_setup_handlers(HttpRouter *router) {
 }
 
 bool handle_root(HttpRequest *request, HttpResponse *response) {
-    response_setup_html(response);
+    http_response_body_set_bytes(response);
     page_index(&response->body.as.bytes);
+    http_response_set_html(response);
     return true;
 }
 
@@ -42,8 +41,9 @@ bool handle_blogs(HttpRequest *request, HttpResponse *response) {
     if (!get_blogs(request->ctx.alloc, &list)) {
         response->status = HTTP_INTERNAL_SERVER_ERROR;
     } else {
-        response_setup_html(response);
+        http_response_body_set_bytes(response);
         blogs(&response->body.as.bytes, list);
+        http_response_set_html(response);
     }
     return true;
 }
@@ -59,17 +59,19 @@ bool handle_blog_by_name(HttpRequest *request, HttpResponse *response) {
     if (
         !get_blog(request->ctx.alloc, *dir, &blog_desc) ||
         !get_blog_text(request->ctx.alloc, *dir, &blog_text)) {
-        response->status = HTTP_INTERNAL_SERVER_ERROR;
+        http_response_set_internal_server_error(response);
     } else {
-        response_setup_html(response);
+        http_response_body_set_bytes(response);
         blog(&response->body.as.bytes, blog_desc, sb_to_sv(blog_text));
+        http_response_set_html(response);
     }
     return true;
 }
 
 bool handle_music(HttpRequest *request, HttpResponse *response) {
-    response_setup_html(response);
+    http_response_body_set_bytes(response);
     render_music(&response->body.as.bytes);
+    http_response_set_html(response);
     return true;
 }
 
@@ -80,12 +82,5 @@ bool handle_assets(HttpRequest *request, HttpResponse *response) {
         response->status = HTTP_NOT_FOUND;
     }
     return true;
-}
-
-void response_setup_html(HttpResponse *response) {
-    response->status = HTTP_OK;
-    http_headermap_insert_cstrs(&response->headers, "Content-Type", "text/html; charset=UTF-8");
-    response->body.kind = RESPONSE_BODY_BYTES;
-    response->body.as.bytes.alloc = response->body.alloc;
 }
 
