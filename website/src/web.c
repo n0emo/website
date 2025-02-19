@@ -17,11 +17,11 @@ void page_base_end(Html *html);
 
 // TODO: parse query
 // TODO: handle POST with body
-bool handle_root(HttpRequest *request, HttpResponse *response, void *user_data);
-bool handle_blogs(HttpRequest *request, HttpResponse *response, void *user_data);
-bool handle_blog_by_name(HttpRequest *request, HttpResponse *response, void *user_data);
-bool handle_music(HttpRequest *request, HttpResponse *response, void *user_data);
-bool handle_assets(HttpRequest *request, HttpResponse *response, void *user_data);
+bool handle_root(HttpRequest *request, HttpResponse *response);
+bool handle_blogs(HttpRequest *request, HttpResponse *response);
+bool handle_blog_by_name(HttpRequest *request, HttpResponse *response);
+bool handle_music(HttpRequest *request, HttpResponse *response);
+bool handle_assets(HttpRequest *request, HttpResponse *response);
 
 void web_setup_handlers(HttpRouter *router) {
     http_route(router, "/", handle_root);
@@ -31,15 +31,15 @@ void web_setup_handlers(HttpRouter *router) {
     http_route_fallback(router, handle_assets, NULL);
 }
 
-bool handle_root(HttpRequest *request, HttpResponse *response, void *user_data) {
+bool handle_root(HttpRequest *request, HttpResponse *response) {
     response_setup_html(response);
     page_index(&response->body.as.bytes);
     return true;
 }
 
-bool handle_blogs(HttpRequest *request, HttpResponse *response, void *user_data) {
+bool handle_blogs(HttpRequest *request, HttpResponse *response) {
     BlogList list = {0};
-    if (!get_blogs(request->alloc, &list)) {
+    if (!get_blogs(request->ctx.alloc, &list)) {
         response->status = HTTP_INTERNAL_SERVER_ERROR;
     } else {
         response_setup_html(response);
@@ -48,17 +48,17 @@ bool handle_blogs(HttpRequest *request, HttpResponse *response, void *user_data)
     return true;
 }
 
-bool handle_blog_by_name(HttpRequest *request, HttpResponse *response, void *user_data) {
-    StringView *dir = http_path_get(&request->path_params, cstr_to_sv("blog"));
+bool handle_blog_by_name(HttpRequest *request, HttpResponse *response) {
+    StringView *dir = http_path_get(&request->ctx.path_params, cstr_to_sv("blog"));
     if (dir == NULL) {
         response->status = HTTP_NOT_FOUND;
         return true;
     }
     Blog blog_desc = {0};
-    StringBuilder blog_text = { .alloc = request->alloc, 0 };
+    StringBuilder blog_text = { .alloc = request->ctx.alloc, 0 };
     if (
-        !get_blog(request->alloc, *dir, &blog_desc) ||
-        !get_blog_text(request->alloc, *dir, &blog_text)) {
+        !get_blog(request->ctx.alloc, *dir, &blog_desc) ||
+        !get_blog_text(request->ctx.alloc, *dir, &blog_text)) {
         response->status = HTTP_INTERNAL_SERVER_ERROR;
     } else {
         response_setup_html(response);
@@ -67,14 +67,14 @@ bool handle_blog_by_name(HttpRequest *request, HttpResponse *response, void *use
     return true;
 }
 
-bool handle_music(HttpRequest *request, HttpResponse *response, void *user_data) {
+bool handle_music(HttpRequest *request, HttpResponse *response) {
     response_setup_html(response);
     render_music(&response->body.as.bytes);
     return true;
 }
 
-bool handle_assets(HttpRequest *request, HttpResponse *response, void *user_data) {
-    if (try_serve_dir(response, request->path, cstr_to_sv("assets"))) {
+bool handle_assets(HttpRequest *request, HttpResponse *response) {
+    if (try_serve_dir(response, request->ctx.path, cstr_to_sv("assets"))) {
         response->status = HTTP_OK;
     } else {
         response->status = HTTP_NOT_FOUND;

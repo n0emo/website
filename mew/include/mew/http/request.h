@@ -17,17 +17,22 @@ void http_path_set(HttpPathParams *params, StringView key, StringView value);
 StringView *http_path_get(HttpPathParams *params, StringView key);
 void http_path_destroy(HttpPathParams *params);
 
-typedef struct {
+typedef struct HttpRequestContext {
     Allocator alloc;
+    StringView path;
+    StringView query_string;
+    HttpPathParams path_params;
+    void *user_data;
+} HttpRequestContext;
+
+typedef struct {
     HttpMethod method;
     StringView resource_path;
     StringView version;
-    StringView path;
-    StringView query_string;
     HttpHeaderMap headers;
     StringBuilder body;
 
-    HttpPathParams path_params;
+    HttpRequestContext ctx;
 } HttpRequest;
 
 bool http_request_init(HttpRequest *request, Allocator alloc);

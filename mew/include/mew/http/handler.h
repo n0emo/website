@@ -7,7 +7,7 @@
 /**
  * Returns false in case of the error
  */
-typedef bool http_request_handle_func_t(HttpRequest *request, HttpResponse *response, void *user_data);
+typedef bool http_request_handle_func_t(HttpRequest *request, HttpResponse *response);
 
 typedef struct HttpRequestHandler {
     http_request_handle_func_t *handler;

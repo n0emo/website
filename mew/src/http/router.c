@@ -17,10 +17,10 @@ void http_router_init(HttpRouter *router, void *user_data, Allocator alloc) {
 }
 
 bool http_router_handle(HttpRouter *router, HttpRequest *request, HttpResponse *response) {
-    request->path_params.is_set = true;
+    request->ctx.path_params.is_set = true;
 
     for (size_t i = 0; i < router->count; i++) {
-        StringView path = request->path;
+        StringView path = request->ctx.path;
         if (path.items[0] == '/') path = sv_slice_from(path, 1);
         HttpRoute route = router->items[i];
         for (size_t j = 0; j < route.pattern_size; j++) {
@@ -31,18 +31,20 @@ bool http_router_handle(HttpRouter *router, HttpRequest *request, HttpResponse *
 
             if (pattern.items[0] == ':') {
                 StringView key = sv_slice_from(pattern, 1);
-                http_path_set(&request->path_params, key, segment);
+                http_path_set(&request->ctx.path_params, key, segment);
                 continue;
             }
 
             if (!sv_eq_sv(segment, pattern)) goto next;
         }
         if (path.count > 0) goto next;
-        return route.handler.handler(request, response, route.handler.user_data);
+        request->ctx.user_data = route.handler.user_data;
+        return route.handler.handler(request, response);
     next:;
     }
 
-    return router->fallback(request, response, router->fallback_data);
+    request->ctx.user_data = router->fallback_data;
+    return router->fallback(request, response);
 }
 
 void http_route_sv(HttpRouter *router, StringView path, http_request_handle_func_t *handler) {

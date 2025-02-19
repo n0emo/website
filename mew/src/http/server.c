@@ -129,7 +129,7 @@ int handle_connection(void *arg) {
     http_request_init(&request, alloc);
 
     HttpResponse response = {0};
-    response.body.alloc = request.alloc;
+    response.body.alloc = alloc;
     http_headermap_init(&response.headers, alloc);
     response.sd = data->connfd;
 
