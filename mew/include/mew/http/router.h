@@ -11,6 +11,32 @@
 
 #include <stddef.h>
 
+typedef struct HttpMatcherState {
+    struct HttpMatcherState *states; // should be exactle 256 states or NULL
+    const void *data;
+    bool has_data;
+} HttpMatcherState;
+
+typedef struct HttpMatcher {
+    HttpMatcherState *states;
+} HttpMatcher;
+
+typedef struct HttpMatch {
+    const void *data;
+    StringView path_params[4];
+    StringView *additional_path_params;
+    StringView remaining_path;
+} HttpMatch;
+
+void http_matcher_init(HttpMatcher *matcher);
+void http_matcher_register(HttpMatcher *matcher, StringView path, const void *data);
+bool http_matcher_find(HttpMatcher *matcher, StringView path, HttpMatch *match_result);
+
+typedef struct HttpRouter {
+    HttpMatcher matcher;
+} HttpRouter;
+
+/*
 typedef struct HttpRoute {
     const char *pattern_ptr;
     StringView *pattern;
@@ -29,6 +55,7 @@ typedef struct HttpRouter {
     http_request_handle_func_t *fallback;
     void *fallback_data;
 } HttpRouter;
+*/
 
 void http_router_init(HttpRouter *router, void *user_data, Allocator alloc);
 bool http_router_handle(HttpRouter *router, HttpRequest *request, HttpResponse *response);

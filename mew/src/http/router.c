@@ -9,6 +9,36 @@
 
 int compare_routes(const void * a, const void * b);
 
+void http_matcher_init(HttpMatcher *matcher) {
+    // TODO: do not use calloc
+    matcher->states = calloc(256, sizeof(HttpMatcherState));
+}
+
+void http_matcher_register(HttpMatcher *matcher, StringView path, const void *data) {
+    HttpMatcherState *states = matcher->states;
+    for (size_t i = 0; i < path.count; i++) {
+        size_t index = path.items[i];
+        if (path.items[i] == ':') {
+            states[index].has_data = true;
+        }
+
+        if (states[index].states == NULL) {
+            states = states[index].states = calloc(256, sizeof(HttpMatcherState));
+        }
+    }
+    states->has_data = true;
+    states->data = data;
+}
+
+bool http_matcher_find(HttpMatcher *matcher, StringView path, HttpMatch *match_result) {
+    HttpMatcherState *states = matcher->states;
+    for (size_t i = 0; i < path.count; i++) {
+        if (states[':'].states != NULL) {
+
+        }
+    }
+}
+
 void http_router_init(HttpRouter *router, void *user_data, Allocator alloc) {
     bzero(router, sizeof(*router));
     router->alloc = alloc;
