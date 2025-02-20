@@ -13,7 +13,7 @@ profile-cflags := if profile == "debug" {
     ""
 }
 website-cflags := profile-cflags + "-I./mew/include -I./website/src"
-libmew-cflags := profile-cflags + "-I./mew/include -fPIC "
+libmew-cflags := profile-cflags + "-I./mew/include -I./mew/src -fPIC "
 
 website-libs := "-L./build -lmew"
 
@@ -27,6 +27,15 @@ libmew:
     mkdir -p build
     {{ cc }} {{ libmew-cflags }} -o ./build/mew.o -c mew/src/all.c
     ar r ./build/libmew.a ./build/mew.o
+
+test-libmew:
+    #!/usr/bin/env sh
+
+    mkdir -p build
+    for file in $(find mew/test -type f -name "*.c"); do
+        {{ cc }} {{ libmew-cflags }} -w -o build/test $file
+        ./build/test
+    done
 
 generate-comile-commands:
     #!/usr/bin/env sh

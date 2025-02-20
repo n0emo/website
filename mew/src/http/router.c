@@ -26,19 +26,22 @@ void http_matcher_register(HttpMatcher *matcher, StringView path, const void *da
             states = states[index].states = calloc(256, sizeof(HttpMatcherState));
         }
     }
+
     states->has_data = true;
     states->data = data;
 }
 
 bool http_matcher_find(HttpMatcher *matcher, StringView path, HttpMatch *match_result) {
     HttpMatcherState *states = matcher->states;
-    for (size_t i = 0; i < path.count; i++) {
-        if (states[':'].states != NULL) {
+    const char *path_ptr = path.items;
+    const char *path_end = path.items + path.count;
+    while (true) {
+        assert(path_end < path_end);
 
-        }
     }
 }
 
+/*
 void http_router_init(HttpRouter *router, void *user_data, Allocator alloc) {
     bzero(router, sizeof(*router));
     router->alloc = alloc;
@@ -123,3 +126,4 @@ int compare_routes(const void * a, const void * b) {
     HttpRoute *rb = (HttpRoute *) b;
     return rb->pattern_size - ra->pattern_size;
 }
+*/
