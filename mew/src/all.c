@@ -1,5 +1,6 @@
 #include "containers/hashmap.c"
 #include "containers/rbtree.c"
+#include "containers/vector.c"
 
 #include "http/common.c"
 #include "http/fs.c"
