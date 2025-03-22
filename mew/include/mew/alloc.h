@@ -42,7 +42,7 @@ allocator_alloc_t malloc_alloc;
 allocator_free_t malloc_free;
 allocator_calloc_t malloc_calloc;
 allocator_realloc_t malloc_realloc;
-Allocator new_malloc_allocator();
+Allocator new_malloc_allocator(void);
 
 static const AllocatorFunctionTable malloc_table = {
     malloc_alloc,

@@ -149,6 +149,7 @@ uint64_t hashmap_sv_hash(const void *value, void *user_data) {
 }
 
 bool hashmap_sv_equals(const void *a, const void *b, void *user_data) {
+    (void) user_data;
     const StringView *sva = (const StringView *) a;
     const StringView *svb = (const StringView *) b;
     return sv_eq_sv(*sva, *svb);

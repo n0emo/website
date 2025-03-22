@@ -40,7 +40,7 @@ void html_text_cstr(Html *html, const char *text);
 void html_text(Html *html, StringView sv);
 void html_render_to_sb_and_free(Html *html, StringBuilder *sb);
 
-Html html_begin();
+Html html_begin(void);
 void html_end(Html *html);
 
 void html_image(Html *html, StringView src);

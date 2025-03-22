@@ -7,7 +7,7 @@
 
 static pthread_mutex_t mtx;
 
-void log_init() {
+void log_init(void) {
     pthread_mutex_init(&mtx, NULL);
 }
 

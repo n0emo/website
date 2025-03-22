@@ -30,6 +30,7 @@ void web_setup_handlers(HttpRouter *router) {
 }
 
 bool handle_root(HttpRequest *request, HttpResponse *response) {
+    (void) request;
     http_response_body_set_bytes(response);
     page_index(&response->body.as.bytes);
     http_response_set_html(response);
@@ -69,6 +70,7 @@ bool handle_blog_by_name(HttpRequest *request, HttpResponse *response) {
 }
 
 bool handle_music(HttpRequest *request, HttpResponse *response) {
+    (void) request;
     http_response_body_set_bytes(response);
     render_music(&response->body.as.bytes);
     http_response_set_html(response);

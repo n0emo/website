@@ -33,7 +33,7 @@
 #include "web.c"
 #include "blogs.c"
 
-int main() {
+int main(void) {
     log_init();
 
     int port = 9000;

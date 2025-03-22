@@ -40,7 +40,7 @@ void handle_sigint(int sig) {
     interrupted = 1;
 }
 
-void wait_for_ctrl_c() {
+void wait_for_ctrl_c(void) {
     struct sigaction sa = {0};
     sa.sa_handler = handle_sigint;
     if (sigaction(SIGINT, &sa, NULL) == -1) {

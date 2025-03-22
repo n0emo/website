@@ -9,7 +9,7 @@
 typedef struct RBTree RBTree;
 typedef struct RBTreeNode RBTreeNode;
 
-typedef enum RBTreeColor : ptrdiff_t {
+typedef enum RBTreeColor {
     RBTREE_RED   = 0,
     RBTREE_BLACK = 1,
 } RBTreeColor;

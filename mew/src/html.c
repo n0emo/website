@@ -4,7 +4,7 @@
 
 #include "mew/alloc.h"
 
-Html html_begin() {
+Html html_begin(void) {
     Html html = {0};
     html.arena = (Arena) {0};
     html.alloc = new_arena_allocator(&html.arena);

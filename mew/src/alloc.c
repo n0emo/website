@@ -7,8 +7,6 @@
 #include <string.h>
 #include <strings.h>
 
-#include "mew/log.h"
-
 /********************************** Memory ************************************/
 
 void *mem_alloc(Allocator allocator, size_t bytes) {
@@ -78,7 +76,7 @@ void *malloc_realloc(void *data, void *ptr, size_t bytes) {
     return realloc(ptr, bytes);
 }
 
-Allocator new_malloc_allocator() {
+Allocator new_malloc_allocator(void) {
     return (Allocator) {
         .data = NULL,
         .ftable = &malloc_table,
