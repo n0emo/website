@@ -1,3 +1,6 @@
 [submodule "mew"]
 	path = mew
 	url = git@github.com:n0emo/mewlib.git
+[submodule "lib/mewlib"]
+	path = lib/mewlib
+	url = git@github.com:n0emo/mewlib.git
