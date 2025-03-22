@@ -10,7 +10,7 @@ if(MSVC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_FRONTEN
   add_compile_options(/Wall /Wextra /W3 /Za /DLOG_WITH_FILE /Zi)
 else()
   set(CMAKE_C_FLAGS "-g -DLOG_WITH_FILE -Wall -Wextra -pedantic -Wno-language-extension-token")
-  
+
   option(ENABLE_SANITIZERS "Enable Address and UB sanitizers" ON)
 
   if (ENABLE_SANITIZERS)
@@ -18,5 +18,14 @@ else()
   endif()
 endif()
 
-add_subdirectory(mew)
-add_subdirectory(website)
+add_subdirectory(lib/mewlib)
+
+add_executable(server ./src/main.c)
+
+target_include_directories(server
+    PRIVATE ./src
+)
+
+target_link_libraries(server
+    PRIVATE mew
+)
