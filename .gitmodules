@@ -1,0 +1,3 @@
+[submodule "mew"]
+	path = mew
+	url = git@github.com:n0emo/mewlib.git
