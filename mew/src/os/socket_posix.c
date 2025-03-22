@@ -145,7 +145,7 @@ bool mew_tcpstream_native_sendfile(void *data, const char *path, uintptr_t size)
     if (body_fd < 0) return false;
 
 #ifdef __APPLE__
-    off_t offset = (off_t) sf.size;
+    off_t offset = (off_t) size;
     int ret = sendfile(body_fd, sd, 0, &offset, NULL, 0);
     if (close(body_fd) < 0 || ret != 0) return false;
 #else
