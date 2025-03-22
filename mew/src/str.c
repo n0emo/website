@@ -194,15 +194,15 @@ size_t sv_count_char(StringView sv, char c) {
     return count;
 }
 
-ssize_t sv_index_char(StringView sv, char c) {
-    for (ssize_t i = 0; i < (ssize_t) sv.count; i++) {
+ptrdiff_t sv_index_char(StringView sv, char c) {
+    for (ptrdiff_t i = 0; i < (ptrdiff_t) sv.count; i++) {
         if (sv.items[i] == c) return i;
     }
     return -1;
 }
 
-ssize_t sv_last_index_char(StringView sv, char c) {
-    for (ssize_t i = sv.count - 1; i >= 0; i--) {
+ptrdiff_t sv_last_index_char(StringView sv, char c) {
+    for (ptrdiff_t i = sv.count - 1; i >= 0; i--) {
         if (sv.items[i] == c) return i;
     }
     return -1;

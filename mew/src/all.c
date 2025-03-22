@@ -17,3 +17,11 @@
 #include "str.c"
 #include "thrdpool.c"
 #include "utils.c"
+
+#ifdef _WIN32
+#include "os/fs_windows.c"
+#include "os/socket_windows.c"
+#else
+#include "os/fs_posix.c"
+#include "os/socket_posix.c"
+#endif

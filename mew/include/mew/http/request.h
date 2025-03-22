@@ -5,6 +5,7 @@
 #include "mew/containers/hashmap.h"
 #include "mew/http/common.h"
 #include "mew/http/headermap.h"
+#include "mew/os/socket.h"
 #include "mew/utils.h"
 
 typedef struct HttpPathParams {
@@ -36,6 +37,6 @@ typedef struct {
 } HttpRequest;
 
 bool http_request_init(HttpRequest *request, Allocator alloc);
-bool http_request_parse(HttpRequest *request, int fd);
+bool http_request_parse(HttpRequest *request, MewTcpStream stream);
 
 #endif // MEW_INCLUDE_MEW_HTTP_REQUEST_H_

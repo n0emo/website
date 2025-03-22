@@ -5,7 +5,7 @@ project(website)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wno-language-extension-token")
+set(CMAKE_C_FLAGS "-g -DLOG_WITH_FILE -Wall -Wextra -pedantic -Wno-language-extension-token")
 
 option(ENABLE_SANITIZERS "Enable Address and UB sanitizers" ON)
 
