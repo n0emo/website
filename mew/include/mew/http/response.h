@@ -6,6 +6,7 @@
 #include "mew/alloc.h"
 #include "mew/http/common.h"
 #include "mew/http/headermap.h"
+#include "mew/os/socket.h"
 #include "mew/utils.h"
 
 typedef enum {
@@ -32,13 +33,12 @@ typedef struct {
     HttpStatus status;
     HttpHeaderMap headers;
     ResponseBody body;
-    int sd;
 } HttpResponse;
 
 /**
- * Writes entire `response` to `fd`.
+ * Writes entire `response` to `stream`.
  */
-bool http_response_write(HttpResponse *response, int fd);
+bool http_response_write(HttpResponse *response, MewTcpStream stream);
 
 /**
  * Sets response `kind` to `RESPONSE_BODY_BYTES` and initializes `as.bytes`.

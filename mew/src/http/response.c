@@ -5,34 +5,25 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#ifdef __APPLE__
-#include <sys/socket.h>
-#else
-#include <sys/sendfile.h>
-#endif
-
 #include "mew/http/common.h"
 #include "mew/log.h"
 
-bool http_response_write(HttpResponse *response, int fd) {
-    if (dprintf(fd, "HTTP/1.1 %d %s\r\n", response->status, http_status_desc(response->status)) < 0) {
-        return false;
-    }
+bool http_response_write(HttpResponse *response, MewTcpStream stream) {
+    if (!mew_tcpstream_write_cstr(stream, "HTTP/1.1 ")) return false;
+    char status[5];
+    snprintf(status, 5, "%d ", response->status);
+    if (!mew_tcpstream_write_cstr(stream, status)) return false;
+    if (!mew_tcpstream_write_cstr(stream, http_status_desc(response->status))) return false;
+    if (!mew_tcpstream_write_cstr(stream, "\r\n")) return false;
 
     const HttpHeaderMapEntries *entries = &response->headers.entries;
     for (size_t i = 0; i < entries->count; i++) {
         const HttpHeader *h = (const HttpHeader *) &entries->items[i].header;
 
-        int ret = dprintf(
-            response->sd,
-            SV_FMT ": " SV_FMT "\r\n",
-            SV_ARG(h->key), SV_ARG(h->value)
-        );
-
-        if (ret < 0) {
-            return false;
-        }
-
+        if (!mew_tcpstream_write(stream, h->key.items, h->key.count)) return false;
+        if (!mew_tcpstream_write_cstr(stream, ": ")) return false;
+        if (!mew_tcpstream_write(stream, h->value.items, h->value.count)) return false;
+        if (!mew_tcpstream_write_cstr(stream, "\r\n")) return false;
     }
 
     size_t content_length = 0;
@@ -47,35 +38,25 @@ bool http_response_write(HttpResponse *response, int fd) {
             break;
     }
 
-    if (content_length > 0) {
-        if (dprintf(fd, "Content-Length: %zu\r\n\r\n", content_length) < 0) {
-            return false;
-        }
-    }
+    char buf[32];
+    snprintf(buf, 32, "%zu", content_length);
+    if (!mew_tcpstream_write_cstr(stream, "Content-Length: ")) return false;
+    if (!mew_tcpstream_write_cstr(stream, buf)) return false;
+    if (!mew_tcpstream_write_cstr(stream, "\r\n\r\n")) return false;
 
     switch (response->body.kind) {
         case RESPONSE_BODY_NONE:
+            log_debug("Response was none");
             break;
         case RESPONSE_BODY_BYTES: {
             StringBuilder *sb = &response->body.as.bytes;
             log_debug("Writing %zu bytes to response", sb->count);
-            if (write(fd, sb->items, sb->count) < 0) return false;
+            if (mew_tcpstream_write(stream, sb->items, sb->count) < 0) return false;
         } break;
         case RESPONSE_BODY_SENDFILE: {
             ResponseSendFile sf = response->body.as.sendfile;
             log_debug("Sending file %s with size %zu", sf.path, sf.size);
-
-            int body_fd = open(sf.path, O_RDONLY);
-            if (body_fd < 0) return false;
-
-#ifdef __APPLE__
-            off_t offset = (off_t) sf.size;
-            int ret = sendfile(body_fd, fd, 0, &offset, NULL, 0);
-            if (close(body_fd) < 0 || ret != 0) return false;
-#else
-            int ret = sendfile(fd, body_fd, NULL, sf.size);
-            if (close(body_fd) < 0 || ret != (ssize_t) sf.size) return false;
-#endif
+            mew_tcpstream_sendfile(stream, sf.path, sf.size);
         };
       break;
     }

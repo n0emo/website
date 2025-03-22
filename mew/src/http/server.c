@@ -1,21 +1,16 @@
 #include "mew/http/server.h"
 
-#include <errno.h>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 #include "mew/alloc.h"
 #include "mew/log.h"
 #include "mew/utils.h"
 
 typedef struct {
-    int connfd;
     HttpServer *server;
+    MewTcpStream stream;
 } ThreadData;
 
 bool init_socket(HttpServer *server);
@@ -39,56 +34,37 @@ defer:
 bool init_socket(HttpServer *server) {
     bool result = true;
 
-    int sd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sd == -1) {
-        log_error("Error creating socker: %s", strerror(errno));
+    MewNativeTcpListenerOptions options;
+    mew_tcplistener_init_default_native_options(&options);
+    MewTcpListener listener;
+    if (!mew_tcplistener_init_native(&listener, options)) {
         return_defer(false);
     }
 
-    struct sockaddr_in addr = {
-        .sin_addr = {
-            .s_addr = htonl(INADDR_ANY),
-        },
-        .sin_family = AF_INET,
-        .sin_port = htons(server->settings.port),
-        .sin_zero = { 0 },
-    };
-
-    int option = 1;
-    setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
-
-    int ret = bind(sd, (struct sockaddr *) &addr, sizeof(addr));
-    if (ret == -1) {
-        log_error("Error binding socket: %s", strerror(errno));
+    if (server->settings.host == NULL) server->settings.host = "0.0.0.0";
+    if (!mew_tcplistener_bind(listener, server->settings.host, server->settings.port)) {
         return_defer(false);
     }
 
-    server->socket = sd;
-    server->address = addr;
+    server->listener = listener;
     return true;
 
 defer:
-    if (sd != -1) close(sd);
+    mew_tcplistener_close(listener);
     return result;
 }
 
 void http_server_destroy(HttpServer *server) {
-    close(server->socket);
+    mew_tcplistener_close(server->listener);
     thrdpool_destroy(&server->thread_pool);
 }
 
 bool http_server_start(HttpServer *server) {
     signal(SIGPIPE, SIG_IGN);
 
-    if (listen(server->socket, 100) == -1) {
-        log_error("Error listening: %s", strerror(errno));
-        return false;
-    }
+    if (!mew_tcplistener_listen(server->listener, 100)) return false;
 
-    char addr_name[INET6_ADDRSTRLEN];
-    char addr_port[10];
-    getnameinfo((struct sockaddr *) &server->address, sizeof(server->address), addr_name, sizeof(addr_name), addr_port, sizeof(addr_port), NI_NUMERICHOST | NI_NUMERICSERV);
-    log_info("Serving at %s:%s", addr_name, addr_port);
+    log_info("Serving at %s:%d", server->settings.host, server->settings.port);
 
     while (true) {
         accept_connection(server);
@@ -98,27 +74,20 @@ bool http_server_start(HttpServer *server) {
 bool accept_connection(HttpServer *server) {
     bool result = true;
     ThreadData *data = NULL;
-    int connfd = accept(server->socket, NULL, NULL);
+    MewTcpStream stream;
+    if (!mew_tcplistener_accept(server->listener, &stream)) return_defer(false);
 
-    if (connfd == -1) {
-        log_error("Error accepting connection: %s", strerror(errno));
-        return_defer(false);
-    }
-
-    struct timeval tv;
-    tv.tv_sec = 120;
-    tv.tv_usec = 0;
-    setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+    mew_tcpstream_set_timeout(stream, 120);
 
     data = calloc(1, sizeof(ThreadData));
-    data->connfd = connfd;
+    data->stream = stream;
     data->server = server;
 
     thrdpool_add_job(&server->thread_pool, handle_connection, (void *) data);
 
 defer:
     if (!result) {
-        if (connfd != -1) close(connfd);
+        mew_tcpstream_close(stream);
         if (data) free(data);
     }
     return result;
@@ -135,14 +104,13 @@ bool serve_request(ThreadData *data) {
     HttpResponse response = {0};
     response.body.alloc = alloc;
     http_headermap_init(&response.headers, alloc);
-    response.sd = data->connfd;
 
-    try(http_request_parse(&request, data->connfd));
+    try(http_request_parse(&request, data->stream));
     http_headermap_insert_cstrs(&response.headers, "X-Frame-Options", "SAMEORIGIN");
     http_headermap_insert_cstrs(&response.headers, "Content-Security-Policy", "default-src 'self';");
     try(http_router_handle(&data->server->router, &request, &response));
 
-    try(http_response_write(&response, data->connfd));
+    try(http_response_write(&response, data->stream));
 
 defer:
     arena_free_arena(&arena);
@@ -154,7 +122,7 @@ int handle_connection(void *arg) {
 
     while (serve_request(data)) { }
 
-    close(data->connfd);
+    mew_tcpstream_close(data->stream);
     free(data);
     return 0;
 }

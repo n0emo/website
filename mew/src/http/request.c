@@ -1,12 +1,15 @@
 #include "mew/http/request.h"
 
 #include <assert.h>
+#include <errno.h>
+#include <string.h>
 #include <stdio.h>
 #include <sys/socket.h>
 
 #include "mew/http/headermap.h"
+#include "mew/log.h"
 
-bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body);
+bool read_request_header_lines(MewTcpStream stream, StringBuilder *header, StringBuilder *body);
 void request_trim_cr(StringView *sv);
 
 void http_path_init(HttpPathParams *params, Allocator alloc) {
@@ -42,10 +45,10 @@ bool http_request_init(HttpRequest *request, Allocator alloc) {
     return true;
 }
 
-bool http_request_parse(HttpRequest *request, int fd) {
+bool http_request_parse(HttpRequest *request, MewTcpStream stream) {
     StringBuilder header = { .alloc = request->ctx.alloc, 0 };
 
-    if (!read_request_header_lines(fd, &header, &request->body)) return false;
+    if (!read_request_header_lines(stream, &header, &request->body)) return false;
     StringView sv = {
         .items = header.items,
         .count = header.count,
@@ -93,14 +96,15 @@ bool http_request_parse(HttpRequest *request, int fd) {
     return true;
 }
 
-bool read_request_header_lines(int sd, StringBuilder *header, StringBuilder *body) {
+bool read_request_header_lines(MewTcpStream stream, StringBuilder *header, StringBuilder *body) {
     char buf[BUF_CAP] = {0};
 
     size_t count = 0;
 
     while (true) {
-        ssize_t bytes = recv(sd, buf, BUF_CAP, 0);
+        ptrdiff_t bytes = mew_tcpstream_read(stream, buf, BUF_CAP);
         if (bytes < 0) {
+            log_error("%s", strerror(errno));
             return false;
         }
 

@@ -5,18 +5,19 @@
 #include <stdint.h>
 
 #include "mew/http/router.h"
+#include "mew/os/socket.h"
 #include "mew/thrdpool.h"
 
 typedef struct HttpServerSettings {
     uint16_t port;
+    const char *host;
 } HttpServerSettings;
 
 typedef struct HttpServer {
     ThreadPool thread_pool;
     HttpRouter router;
-    int socket;
+    MewTcpListener listener;
     HttpServerSettings settings;
-    struct sockaddr_in address;
 } HttpServer;
 
 bool http_server_init(HttpServer *server, HttpRouter router, HttpServerSettings settings);
