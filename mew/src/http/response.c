@@ -1,9 +1,7 @@
 #include "mew/http/response.h"
 
 #include <assert.h>
-#include <fcntl.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #include "mew/http/common.h"
 #include "mew/log.h"

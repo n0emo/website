@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/socket.h>
 
 #include "mew/http/headermap.h"
 #include "mew/log.h"

@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <string.h>
-#include <strings.h>
 
 RBTreeNode *rbtree_new_node(RBTree *tree, const void *element) {
     size_t size = sizeof(RBTreeNode) + tree->element_size;

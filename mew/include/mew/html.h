@@ -1,7 +1,8 @@
 #ifndef MEW_INCLUDE_MEW_HTML_H_
 #define MEW_INCLUDE_MEW_HTML_H_
 
-#include "utils.h"
+#include "mew/utils.h"
+#include "mew/str.h"
 
 typedef struct {
     StringView name;

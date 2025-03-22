@@ -6,6 +6,7 @@
 #include "mew/ini.h"
 #include "mew/log.h"
 #include "mew/utils.h"
+#include "mew/os/fs.h"
 
 bool get_blogs(Allocator alloc, BlogList *list) {
     bool result = true;
@@ -21,7 +22,7 @@ bool get_blogs(Allocator alloc, BlogList *list) {
         if (strncmp(d, ".", 1) == 0 || strncmp(d, "..", 2) == 0) continue;
         const char *path = mem_sprintf(alloc, "blogs/%s/metadata.ini", d);
 
-        if (!read_file_to_sb(path, &sb)) {
+        if (!mew_fs_read_file_to_sb(path, &sb)) {
             sb.count = 0;
             continue;
         }
@@ -68,7 +69,7 @@ bool get_blog(Allocator alloc, StringView dir, Blog *blog_desc) {
     StringBuilder sb = { .alloc = alloc, 0 };
     const char *path = mem_sprintf(alloc, "blogs/" SV_FMT "/metadata.ini", SV_ARG(dir));
 
-    if (!read_file_to_sb(path, &sb)) return false;
+    if (!mew_fs_read_file_to_sb(path, &sb)) return false;
     Ini ini = { .alloc = alloc, {0} };
     if (!parse_ini(sb_to_sv(sb), &ini)) return false;
 
@@ -97,5 +98,5 @@ bool get_blog(Allocator alloc, StringView dir, Blog *blog_desc) {
 
 bool get_blog_text(Allocator alloc, StringView dir, StringBuilder *blog_text) {
     const char *path = mem_sprintf(alloc, "blogs/" SV_FMT "/en.md", SV_ARG(dir));
-    return read_file_to_sb(path, blog_text);
+    return mew_fs_read_file_to_sb(path, blog_text);
 }

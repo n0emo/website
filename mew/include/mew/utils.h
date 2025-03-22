@@ -6,9 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "str.h"
 #include "alloc.h" // IWYU pragma: export
-
 
 /********* Error handling **********/
 
@@ -38,10 +36,6 @@
     (array)->items[(array)->count] = (item); \
     (array)->count++; \
 } while(0) \
-
-/********** Filesystem ***********/
-
-bool read_file_to_sb(const char *path, StringBuilder *sb);
 
 /************ Other **************/
 

@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <strings.h>
 
 #include "mew/str.h"
 #include "mew/utils.h"

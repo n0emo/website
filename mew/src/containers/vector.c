@@ -1,7 +1,6 @@
 #include "mew/containers/vector.h"
 
 #include <string.h>
-#include <strings.h>
 #include <stddef.h>
 
 void mew_vec_init(MewVector *vec, Allocator alloc, size_t element_size) {
