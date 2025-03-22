@@ -11,7 +11,7 @@ if(MSVC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_FRONTEN
   add_compile_options(/W4)
 else()
   # GCC/Clang flags
-  set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wno-language-extension-token")
+  set(CMAKE_C_FLAGS "-g -DLOG_WITH_FILE -Wall -Wextra -pedantic -Wno-language-extension-token")
   
   # Sanitizer options
   option(ENABLE_SANITIZERS "Enable Address and UB sanitizers" ON)
