@@ -139,7 +139,6 @@ ptrdiff_t mew_tcpstream_native_write(void *data, const char *buf, uintptr_t size
 }
 
 bool mew_tcpstream_native_sendfile(void *data, const char *path, uintptr_t size) {
-    log_info("Sendfile");
     int sd = (int) (uintptr_t) data;
     int body_fd = open(path, O_RDONLY);
     if (body_fd < 0) return false;
